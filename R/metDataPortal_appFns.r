@@ -1,36 +1,7 @@
 
-getMDS = function(input) {
-  patientSim = graphs[[input$diagnosis]][["patientSim"]]
-  d = graphs[[input$diagnosis]][["diagnoses"]]
-  if (input$diagnosis=="zsd") {
-    d = c(rep("PEX1", 19), rep("PEX7", 21), rep("negCntl", 40))
-  }
-  if (input$dim==2) {
-    fitSim = cmdscale(patientSim, eig=FALSE, k=2)
-    x = round(fitSim[,1], 2)
-    y = round(fitSim[,2], 2)
-    df = data.frame(x=x, y=y, color=d)
-    mds_plot = plot_ly(df, x=~x, y=~y, color=~color, marker = list(size = 20))
-  } else {
-    fitSim = cmdscale(patientSim, eig=FALSE, k=3)
-    x = round(fitSim[,1], 2)
-    y = round(fitSim[,2], 2)
-    z = round(fitSim[,3], 2)
-    df = data.frame(x=x, y=y, z=z, color=d, label=colnames(patientSim))
-    mds_plot = plot_ly(df, x=~x, y=~y, z=~z, color=~color, text=~label)
-  }
-  return(mds_plot)
-}
-
 getData = function(input) {
   print("called getData()...")
-  if (input$raworZscore == "Raw") {
-    data = .GlobalEnv$all_raw_data
-  } else if (input$raworZscore == "Normalized") {
-    data = .GlobalEnv$all_norm_data
-  } else if (input$raworZscore == "Zscored") {
-    data = .GlobalEnv$all_data
-  }
+  data = .GlobalEnv$all_data
   pts = as.character(unlist(sapply(input$showThese, function(i) cohorts[[i]])))
   ind = which(colnames(data) %in% pts)
   data = data[,ind]
@@ -41,174 +12,45 @@ getData = function(input) {
   return(res)
 }
 
-getMetList = function(input) {
-  # First, get rid of metabolites that have below fil rate
-  ref = data.matrix(.GlobalEnv$all_norm_data)
-  r.ids = unlist(sapply(ref.ids, function(i) sprintf("X%s", i)))
-  ref = ref[,which(colnames(ref) %in% r.ids)]
-  ref.fil = apply(ref, 1, function(i) 1-(sum(is.na(i))/length(i)))
-  ref = ref[which(ref.fil>0.66),]
-  metClass = .GlobalEnv$metClass[which(ref.fil>0.66)]
-
-  if (input$metClass=="Lipid") {
-    return(rownames(ref)[which(metClass=="Lipid")])
-  } else if (input$metClass=="Unknown") {
-    return(rownames(ref)[which(metClass=="Unknown")])
-  } else if (input$metClass=="Nucleotide") {
-    return(rownames(ref)[which(metClass=="Nucleotide")])
-  } else if (input$metClass=="Amino Acid") {
-    return(rownames(ref)[which(metClass=="Amino Acid")])
-  } else if (input$metClass=="Cofactors and Vitamins") {
-    return(rownames(ref)[which(metClass=="Cofactors and Vitamins")])
-  } else if (input$metClass=="Xenobiotics") {
-    return(rownames(ref)[which(metClass=="Xenobiotics")])
-  } else if (input$metClass=="Carbohydrate") {
-    return(rownames(ref)[which(metClass=="Carbohydrate")])
-  } else if (input$metClass=="Energy") {
-    return(rownames(ref)[which(metClass=="Energy")])
-  } else if (input$metClass=="Peptide") {
-    return(rownames(ref)[which(metClass=="Peptide")])
-  }
-}
-
-neg = function(x) { return(-x) }
-
-# Get reference population statistics & plots
-getRefPop = function(input, norm.data) {
-  print("getRefPop() called.")
-  r.ids = unlist(sapply(ref.ids, function(i) sprintf("X%s", i)))
-  ref = norm.data[, which(colnames(norm.data) %in% r.ids)]
-  ref.fil = apply(ref, 1, function(i) 1-(sum(is.na(i))/length(i)))
-  ref = ref[which(ref.fil>0.66),]
-  print(dim(ref))
-  print(input$metSelect)
-  print(input$metSelect %in% rownames(ref))
-
-  # Histogram plot of metabolite, with outliers that were removed during z-score calculation highlighted in red
-  outlierSamples = which(ref[input$metSelect,] %in% boxplot.stats(ref[input$metSelect,])$out)
-  print(sprintf("Length outlier samples = %d", length(outlierSamples)))
-  if (length(outlierSamples)>0) {
-    df = data.frame(x=as.numeric(ref[input$metSelect, -outlierSamples]))
-  } else {
-    df = data.frame(x=as.numeric(ref[input$metSelect,]))
-  }
-  hst = ggplot(data=df, aes(x=x)) + geom_histogram() +
-    ggtitle(sprintf("%s (%s)", input$metSelect, input$metClass)) + labs(x="log(NormScaledImputed)", y="Count")
-  y = quantile(df$x[!is.na(df$x)], c(0.05, 0.95))
-  x = qnorm(c(0.05, 0.95))
-  slope = diff(y)/diff(x)
-  int = y[1L] - slope * x[1L]
-  qq = ggplot(data=df, aes(sample=x)) + stat_qq() + ggtitle(sprintf("Normal QQ-Plot for %s (%s)", input$metSelect, input$metClass)) +
-    geom_abline(slope = slope, intercept = int)
-
-  per = list(up=length(which(.GlobalEnv$all_data[input$metSelect,]>2))/nrow(.GlobalEnv$all_data),
-             down=length(which(neg(.GlobalEnv$all_data[input$metSelect,]) > 2))/nrow(.GlobalEnv$all_data))
-  df = data.frame(Sample=1:ncol(.GlobalEnv$all_data), Zscore=.GlobalEnv$all_data[input$metSelect,])
-  rare = ggplot(data=df, aes(x=Sample, y=Zscore)) + geom_point(size=1) +
-    ggtitle(sprintf("Percentage with zscore >2 = %.2f.\nPercentage with zscore <-2 = %.2f.", per$up, per$down)) +
-    geom_hline(yintercept=2, color="red") + geom_hline(yintercept=-2, color="red")
-
-  x = ref[input$metSelect,-outlierSamples]
-  d = qqnorm(as.numeric(x), plot.it = FALSE)
-  xx = d$y
-  zz = d$x
-  t = lm(xx~zz, data=as.data.frame(x=xx, z=zz))
-  mn.est = as.numeric(t$coefficients[1])
-  sd.est = as.numeric(t$coefficients[2])
-
-  samples = colnames(ref)[which(ref[input$metSelect,] %in% boxplot.stats(ref[input$metSelect,])$out)]
-  values = ref[input$metSelect, which(ref[input$metSelect,] %in% boxplot.stats(ref[input$metSelect,])$out)]
-  outlierSamples = cbind(samples, round(as.numeric(values),2))
-  colnames(outlierSamples) = c("Samples Outliers", "Sample Value")
-
-  return (list(hst=hst, outliers=outlierSamples, qq=qq, ests=list(mean=mn.est, std=sd.est), rare=rare, per=per))
-}
-
-getPatientReport = function(input, raw.data, norm.data, zscore.data) {
-  raw.data = data.matrix(raw.data)
-  norm.data = data.matrix(norm.data)
-  zscore.data = data.matrix(zscore.data)
-
-  r.ids = unlist(sapply(ref.ids, function(i) sprintf("X%s", i)))
-  ref = norm.data[,which(colnames(norm.data) %in% r.ids)]
-  ref.fil = apply(ref, 1, function(i) 1-(sum(is.na(i))/length(i)))
-
-  # MetaboliteName  RawIonIntensity Anchor(CMTRX.5 median value)  Zscore
-  tmp = rownames(raw.data)
-  tmp.zscore = rownames(zscore.data)
-  ind = which(rownames(zscore.data) %in% rownames(norm.data))
+getPatientReport = function(input, all_data) {
+  print(input$diagClass)
+  print(input$ptIDs)
+  
+  # MetaboliteName Zscore
+  all_data = data.matrix(all_data)
+  tmp.zscore = rownames(all_data)
   if (length(input$ptIDs)>1) {
-    if (length(which(colnames(raw.data) %in% input$ptIDs))>1) {
-      raw.data = apply(raw.data[,which(colnames(raw.data) %in% input$ptIDs)], 1, function(i) mean(na.omit(i)))
-      norm.data = apply(norm.data[,which(colnames(norm.data) %in% input$ptIDs)], 1, function(i) mean(na.omit(i)))
-    } else {
-      raw.data = rep(NA, nrow(raw.data))
-      norm.data = rep(NA, nrow(norm.data))
-    }
-    zscore.data = apply(zscore.data[ind, which(colnames(zscore.data) %in% input$ptIDs)], 1, function(i) mean(na.omit(i)))
+    zscore.data = apply(all_data[ , which(colnames(all_data) %in% input$ptIDs)], 1, function(i) mean(na.omit(i)))
   } else {
-    raw.data = rep(NA, nrow(raw.data))
-    norm.data = rep(NA, nrow(norm.data))
-    zscore.data = zscore.data[ind, which(colnames(zscore.data)==input$ptIDs)]
+    zscore.data = all_data[ , which(colnames(all_data)==input$ptIDs)]
   }
-  names(raw.data) = tmp
-  names(norm.data) = tmp
-  names(zscore.data) = tmp.zscore[ind]
-
-  data = data.frame(Metabolite=character(), Raw=numeric(), Anchor=numeric(), Zscore=numeric(), stringsAsFactors = FALSE)
-  for (row in 1:length(raw.data)) {
-    data[row, "Metabolite"] = names(raw.data)[row]
-    data[row, "Raw"] = round(raw.data[row], 2)
-    if (length(which(names(norm.data)==names(raw.data)[row]))>0) {
-      data[row, "Anchor"] = round(norm.data[which(names(norm.data)==names(raw.data)[row])], 2)
-    } else {
-      data[row, "Anchor"] = NA
-    }
-    if (length(which(names(zscore.data)==names(raw.data)[row]))>0) {
-      data[row, "Zscore"] = round(zscore.data[which(names(zscore.data)==names(raw.data)[row])], 2)
-    } else {
-      data[row, "Zscore"] = NA
-    }
+  names(zscore.data) = tmp.zscore
+  print(head(zscore.data))
+  
+  ind = which(is.na(zscore.data))
+  if (length(ind)>0) {
+    zscore.data = zscore.data[-ind]
   }
 
-  # Remove mets that were NA in raw, norm and zscore AND
-  # Next, Remove mets that were NA in raw, but not in Anchor. These will be displayed in separate table.
-  # Note, these values were imputed and therefore should not be included in patient report, but should
-  # be noted that these metabolites were normally found.
-  # Last, remove mets that were NA in raw, but not in Zscore.
-  ind0 = intersect(intersect(which(is.na(data[,"Raw"])), which(is.na(data[,"Anchor"]))), which(is.na(data[,"Zscore"])))
-  ind1 = intersect(which(is.na(data[,"Raw"])), which(!is.na(data[,"Anchor"])))
-  #ind2 = intersect(which(is.na(data[,"Raw"])), which(!is.na(data[,"Zscore"])))
-  ind_all = data[,"Metabolite"][unique(c(ind0, ind1))] #ind2
-  tmp = ref.fil[ind_all]
-  report_these = tmp[which(tmp>0.80)]
-  # Report these metabolites
-  missingMets = data.frame(Metabolite=character(), Reference.FillRate=numeric(), stringsAsFactors = FALSE)
-  if (length(report_these)>0) {
-    for (i in 1:length(report_these)) {
-      met = names(report_these)[i]
-      missingMets[i, "Metabolite"] = met
-      missingMets[i, "Reference.FillRate"] = ref.fil[which(names(ref.fil)==met)]
-    }
-    colnames(missingMets) = c("Compound", "Reference Fill Rate")
-  } else {
-    missingMets = NULL
+  data = data.frame(Metabolite=character(), Zscore=numeric(), stringsAsFactors = FALSE)
+  for (row in 1:length(zscore.data)) {
+    data[row, "Metabolite"] = names(zscore.data)[row]
+    data[row, "Zscore"] = round(zscore.data[names(zscore.data)[row]], 2)
   }
 
-  if (length(ind_all)>0) {
-    data = data[-unique(c(ind0, ind1)),]
+  # Remove mets that were NA in zscore 
+  ind0 = which(is.na(data[,"Zscore"]))
+  if (length(ind0)>0) {
+    data = data[-ind0,]
   }
   print(dim(data))
-
-  # Order by Fill Rate
-  missingMets = missingMets[order(missingMets[,"Reference Fill Rate"], decreasing = TRUE),]
-
+  
   # Order by abs(Zscore)
   class(data[,"Zscore"]) = "numeric"
   data = data[order(abs(data[,"Zscore"]), decreasing = TRUE), ]
-  names(data) = c("Metabolite", "Raw Ion Intensity", "Anchor", "Z-score")
+  names(data) = c("Metabolite", "Z-score")
 
-  return(list(patientReport=data, missingMets=missingMets))
+  return(list(patientReport=data))
 }
 
 getPathwayMap = function(input, zscore.data) {
@@ -226,23 +68,27 @@ getPathwayMap = function(input, zscore.data) {
     PatientID = input$ptIDs
     scalingFactor = input$scalingFactor
     tmp = rownames(zscore.data)
-    patient.zscore = zscore.data[,which(colnames(zscore.data) %in% input$ptIDs)]
-    patient.zscore = apply(patient.zscore, 1, function(i) mean(na.omit(i)))
+    if (length(input$ptIDs)>1) {
+      patient.zscore = zscore.data[,which(colnames(zscore.data) %in% input$ptIDs)]
+      patient.zscore = apply(patient.zscore, 1, function(i) mean(na.omit(i)))
+    } else {
+      patient.zscore = zscore.data[,which(colnames(zscore.data)==input$ptIDs)]
+    }
     names(patient.zscore) = tmp
     #print(patient.zscore)
 
-    pmap.path = "../../inst/extdata"
+    pmap.path = "../inst/extdata"
     load(sprintf("%s/complexNodes.RData", pmap.path))
     if (Pathway.Name=="All") {
-      load(sprintf("%s/RData/allPathways.RData", pmap.path))
-      V(template.ig)$label[which(V(template.ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
+      load(sprintf("%s/RData/allPathways2.RData", pmap.path))
+      V(ig)$label[which(V(ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
       scalingFactor=1
       Pathway.Name = "allPathways"
     } else {
       load(sprintf("%s/RData/%s.RData", pmap.path, Pathway.Name))
-      template.ig = ig
     }
-
+    template.ig = ig
+    
     # Load id to display label mappings
     nodeDisplayNames= read.table(sprintf("%s/%s/DisplayName-%s.txt", pmap.path, Pathway.Name, Pathway.Name),
                                  header=TRUE, sep="\n", check.names = FALSE)

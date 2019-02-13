@@ -1,0 +1,789 @@
+% \VignetteIndexEntry{CePa Vignette}
+% \VignetteDepends{CePa}
+% \VignetteKeywords{Pathway Enrichment Analysis}
+% \VignettePackage{CePa}
+
+
+
+\documentclass[a4paper]{article}
+
+\title{Centrality-based Pathway Enrichment}
+
+\author{Zuguang Gu}
+
+\usepackage{Sweave}
+\begin{document}
+
+\maketitle 
+\section{Introduction}
+Gene set enrichment analysis is broadly used in microarray data analysis \cite{Khatri2005,Huang2009a}.
+It aimes to find which biological functions are affected by a group of 
+related genes behind the massive information. The most used methotology is finding
+these significant gene set from a 2 $\times$ 2 contingency table, usually by Fisher's
+exact test or chi-square test. This kind of analysis is known as Over-represented
+Analysis (ORA). It takes a list of differential expressed gene, and returns significant
+gene sets that the differential genes are enriched in. A lot of methods have been
+developed under the framework of ORA such as {DAVID} \cite{Huang2009b} (http://http://david.abcc.ncifcrf.gov/)
+and \texttt{GOstats} package \cite{Falcon2007}. The second methodology to find significant
+pathways is to use whole expression matrix, named Gene-set Analysis (GSA). 
+GSA methods are implemented via either a univariate or a multivariate procedure \cite{Ackermann2009}. 
+In univariate analysis, gene level statistics are initially calculated from fold changes 
+or statistical tests (e.g., {\it t}-test). These statistics are then combined into 
+a pathway level statistic by summation or averaging. GSEA \cite{Subramanian2005} 
+is a widely used univariate tool that utilizes a weighted Kolmogorov-Smirnov test 
+to measure the degree of differential expression of a gene set by calculating a 
+running sum from the top of a ranked gene list. Multivariate analysis considers 
+the correlations between genes in the pathway and calculates the pathway level 
+statistic directly from the expression value matrix using Hotelling's $T^2$ test \cite{Song2006} 
+or MANOVA models \cite{Hummel2008}.
+
+For a specific form of gene sets, biological pathways are collections of correlated genes/proteins,
+RNAs and compounds that work together to regulate specific biological
+processes. Instead of just being a list of genes, a pathway contains 
+the most important information that is how the member genes interact 
+with each other. Thus network structure information is necessary for
+the intepretation of the importance of the pathways.
+
+In this package, the original pathway enrichment method
+(ORA and GSA) is extended by introducing network centralities as the weight 
+of nodes which have been mapped from differentially expressed genes 
+in pathways \cite{Gu2012}. There are two advantages compared to former methods.
+First, for the diversity of genes' characters and the difficulties of 
+covering the importance of genes from all aspects, we do not design a 
+fixed measurement for each gene but set it as an optional parameter in the model. 
+Researchers can select from candidate choices where different measurement 
+reflects different aspect of the importance of genes. 
+In our model, network centralities are used to measure the importance of genes in pathways. 
+Different centrality measurements assign the importance to nodes from different aspects. 
+For example, degree centrality measures the amount of neighbours that 
+a node directly connects to, and betweenness centrality measures how many 
+information streams must pass through a certain node. Generally speaking, 
+nodes having large centrality values are central nodes in the network. 
+It's observed that nodes represented as metabolites, proteins or genes 
+with high centralities are essential to keep the steady state of biological networks. 
+Moreover, different centrality measurements may relate to different biological functions. 
+The selection of centralities for researchers depends on what kind of genes 
+they think important. Second, we use nodes as the basic units of pathways 
+instead of genes. We observe that nodes in the pathways include different 
+types of molecules, such as single gene, complex and protein families. 
+Assuming a complex or family contains ten differentially expressed member genes, 
+in traditional ORA, these ten genes behave as the same position as other
+genes represented as single nodes, and thus they have effect of ten. 
+It is not proper because these ten genes stay in a same node in the 
+pathway and make functions with the effect of one node. Also, 
+a same gene may locate in different complexes in a pathway and if 
+taking the gene with effect of one, it would greatly decrease the importance 
+of the gene. Therefore a mapping procedure from genes to pathway nodes 
+is applied in our model. What's more, the nodes in pathways also include 
+non-gene nodes such as microRNAs and compounds. These nodes also 
+contribute to the topology of the pathway. So, when analyzing pathways, 
+all types of nodes are retained.
+
+\section{Pathway Catalogue}
+Pathways are collected from public databases, such as PID, KEGG, BioCarta etc.
+In \texttt{CePa} package, four catalogues (PID, KEGG, BioCarta and Reactome) from PID database have been integrated.
+The pathway data are parsed from XML format file provided by the PID FTP site. 
+The Perl code for parsing can be obtained from the author's website 
+(http://mcube.nju.edu.cn/jwang/lab/soft/cepa/). The pathway data is stored
+in \texttt{PID.db}. Note only part of pathways in the XML file are listed on the PID website. Also, 
+we have set the minimum and maximum connected nodes when extracting pathways 
+from PID, so not all the pathways listed on the PID website are in \texttt{PID.db}.
+\begin{Schunk}
+\begin{Sinput}
+> library(CePa)
+> data(PID.db)
+> names(PID.db)
+\end{Sinput}
+\begin{Soutput}
+[1] "NCI"      "BioCarta" "KEGG"     "Reactome"
+\end{Soutput}
+\end{Schunk}
+
+Each pathway catalogue has been stored as a \texttt{pathway.catalogue} class object.
+The \texttt{print.pathway.catalogue} function simply prints the number of pathways in the catalogue.
+The \texttt{plot.pathway.catalogue} function visulizes general information of the catalogue (figure \ref{f1}).
+It plot:  A) Distribution of the number of member genes in each node; 
+B) Distribution of the number of nodes in which a single gene resides; C) Relationship 
+between node count and gene count in biological pathways. 
+\begin{Schunk}
+\begin{Sinput}
+> class(PID.db$NCI)
+\end{Sinput}
+\begin{Soutput}
+[1] "pathway.catalogue"
+\end{Soutput}
+\begin{Sinput}
+> PID.db$NCI
+\end{Sinput}
+\begin{Soutput}
+  The catalogue contains 206 pathways.
+\end{Soutput}
+\begin{Sinput}
+> plot(PID.db$NCI)
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f1.pdf}
+\caption{Meta analysis of pathway catalogue}\label{f1}
+\end{center}
+\end{figure}
+
+The pathway catalogue data contains a list of pathways and each pathway contains 
+a list of interactions. There are several parts in the pathway data where three of them is must: the pathway list,
+the interaction list and the mapping list. The corresponding list name are \texttt{pathList},
+\texttt{interactionList} and \texttt{mapping}.
+\begin{Schunk}
+\begin{Sinput}
+> names(PID.db$NCI)
+\end{Sinput}
+\begin{Soutput}
+[1] "pathList"        "interactionList" "mapping"         "node.name"      
+[5] "node.type"       "version" 
+\end{Soutput}
+\end{Schunk}
+
+You can find the version of NCI data.
+\begin{Schunk}
+\begin{Sinput}
+> PID.db$NCI$version
+\end{Sinput}
+\begin{Soutput}
+[1] "2012_07_19 09:34::20"
+\end{Soutput}
+\end{Schunk}
+
+The \texttt{pathList} is a list in which each item is a list of interaction IDs
+\begin{Schunk}
+\begin{Sinput}
+> head(PID.db$NCI$pathList, n = 2)
+\end{Sinput}
+\begin{Soutput}
+$wnt_signaling_pathway
+ [1] "203098" "203087" "203104" "203106" "203125" "203127" "203092" "203142"
+ [9] "203097" "203111" "203099" "203118" "203103" "203137" "203143" "203091"
+[17] "203088" "203141" "203128" "203089" "203101" "203117" "203126" "203140"
+[25] "203095" "203108" "203119" "203129" "203113" "203120" "203094" "203102"
+[33] "203122" "203136" "203145" "203105" "203123" "203144" "203130" "203132"
+[41] "203124" "203107" "203110" "203093" "203133" "203090" "203096" "203109"
+[49] "203100" "203121" "203116" "203112"
+
+$cdc42_reg_pathway
+ [1] "203416" "203396" "203420" "203393" "203405" "203418" "203392" "203415"
+ [9] "203388" "203408" "203389" "203390" "203403" "203412" "203398" "203410"
+[17] "203406" "203395" "203391" "203401" "203394" "203419" "203404" "203397"
+[25] "203399" "203407" "203402" "203400" "203413" "203411" "203409" "203414"
+\end{Soutput}
+\end{Schunk}
+
+The \texttt{interactionList} is a three-column matrix in which the first column
+is the interaction ID, the second column is the input node ID and the third column
+is the output node ID.
+\begin{Schunk}
+\begin{Sinput}
+> head(PID.db$NCI$interactionList)
+\end{Sinput}
+\begin{Soutput}
+  interaction.id  input output
+1         503376 507485 506711
+2         503376 507487 507485
+3         204164 202538 208490
+4         204164 208487 208490
+5         100688 101169 101176
+6         100688 101177 101176
+\end{Soutput}
+\end{Schunk}
+
+The \texttt{mapping} is the two-column matrix in which the first column is the node ID
+and the second column is the gene ID.
+\begin{Schunk}
+\begin{Sinput}
+> head(PID.db$NCI$mapping)
+\end{Sinput}
+\begin{Soutput}
+  node.id  symbol
+1  202230 ARHGAP6
+2  201405    XIAP
+3  503376  SLC7A2
+4  203548   SATB1
+5  201647    CRY2
+6  508774     CRH
+\end{Soutput}
+\end{Schunk}
+
+The pathway catalogue can also be self-defined by \texttt{set.pathway.catalogue} function. The
+function returns a \texttt{pathway.catalogue} class object. E.g. we only need the
+first ten pathways in NCI catalogue.
+\begin{Schunk}
+\begin{Sinput}
+> new.catalogue = set.pathway.catalogue(pathList = PID.db$NCI$pathList[1:10],
++                 interactionList = PID.db$NCI$interactionList,
++                 mapping = PID.db$NCI$mapping)
+\end{Sinput}
+\end{Schunk}
+
+In the following examples, we will use NCI catalogue as the default pathway catalogue.
+
+\section{ORA Extension}
+The pathway score is defined as the summation of the weights of differentially affected 
+nodes in the pathway:
+\begin{equation}\label{equation:1}
+    s = \sum^n_{i = 1}{w_id_i}
+\end{equation}
+
+where $s$ is the score of the pathway, $w_i$ is the weight of the $i^{th}$ node 
+and reflects the importance of the node, $n$ is the number of nodes in the pathway, 
+and $d_i$ identifies whether the $i^{th}$ node is differentially affected ( $= 1$) or not ( $= 0$).
+
+The \texttt{CePa} package needs a differentially expressed gene list and a background gene list.
+The differential gene list can be obtained through variaty of methods such as
+{\it t}-test, SAM \cite{Tusher2001} and limma \cite{Smyth2005}. The background gene list is the complete category of genes
+that exist on a certain microarray platform or from the whole genome. The \texttt{CePa} package
+contains an example gene list and a background gene list. The gene list is obtained
+from a microarray study by {\it t}-test \cite{Burchard2010}.
+\begin{Schunk}
+\begin{Sinput}
+> data(gene.list)
+> names(gene.list)
+\end{Sinput}
+\begin{Soutput}
+[1] "bk"  "dif"
+\end{Soutput}
+\end{Schunk}
+
+In order to find significant pathways under several centrality measurements, we use 
+\texttt{cepa.all} function.In the function, \texttt{dif} refers to the differential
+gene list, \texttt{bk} refers to the background gene list and the \texttt{pc} refers
+to the pathway catalogue.
+\begin{Schunk}
+\begin{Sinput}
+> res = cepa.all(dif = gene.list$dif, bk = gene.list$bk,
++                pc = PID.db$NCI)
+\end{Sinput}
+\begin{Soutput}
+  Calculate pathway scores...
+    1/211, wnt_signaling_pathway...
+      - equal.weight: 0.878
+      - in.degree: 0.864
+      - out.degree: 0.921
+      - betweenness: 0.89
+      - in.reach: 0.81
+      - out.reach: 0.91
+    ...
+\end{Soutput}
+\end{Schunk}
+
+The differential gene list and the background gene list should be indicated
+with the same identifiers (e.g. gene symbol or refseq ID). All genes in
+the differential gene list should exist in the background gene list. In this
+example, since \texttt{PID.db} is applied, gene list must be formatted as gene symbol. If background gene list is
+not specified, the function use whole human genome genes as default.
+
+By default, \texttt{cepa.all} calls \texttt{equal.weight}, \texttt{in.degree}, \texttt{out.degree},
+\texttt{betweenness}, \texttt{in.reach} and \texttt{out.reach} centralities as pathway nodes' weight.
+More centrality measurements can be used by setting it as a function (such as closeness,
+cluster coefficient). The non-default centralities can be set by \texttt{cen} argument, and remember
+to set the \texttt{cen.name} argument to get the name of the centrality. Note you can mix the centralities
+in string format and function format. When you set the function object, the only parameter for the
+function is the network in \texttt{igraph} object format. The following codes are examples to set the centralities.
+\begin{Schunk}
+\begin{Sinput}
+> # if you use the function, you should quote the function
+> # because we need the function name as the centrality name
+> cepa.all(dif = gene.list$dif, bk = gene.list$bk,
++          pc = PID.db$NCI,
++          cen = list("in.degree", quote(closeness)))
+\end{Sinput}
+\end{Schunk}
+
+Moreover, if your centrality function contains more than one argument, you must
+wrap to a function that only have one \texttt{igraph} object argument.
+\begin{Schunk}
+\begin{Sinput}
+> in.closeness = function(g) closeness(g, mode = "in")
+> cepa.all(dif = gene.list$dif, bk = gene.list$bk,
++          pc = PID.db$NCI,
++          cen = list("in.degree", quote(in.closeness)))
+> # If you don't like the function name to be centrality name
+> # you can set by cen.name argument
+> cepa.all(dif = gene.list$dif, bk = gene.list$bk,
++          pc = PID.db$NCI,
++          cen = list("in.degree", quote(in.closeness)),
++          cen.name = c("In-degree", "In-closeness"))
+\end{Sinput}
+\end{Schunk}
+
+In order to generate the null distribution of the pathway score, novel differential
+gene list is sampled from the background gene list. P-values are calculated from 1000 simulations by default.
+
+The calculation would spend about 12 min. \texttt{res} is a \texttt{cepa.all} class object. To see the general information
+of this object:
+\begin{Schunk}
+\begin{Sinput}
+> res
+\end{Sinput}
+\begin{Soutput}
+number of pathways: 211 
+
+Significant pathways (p.value <= 0.01):
+             Number
+equal.weight     20
+in.degree        19
+out.degree       19
+betweenness      14
+in.reach         19
+out.reach        20
+\end{Soutput}
+\end{Schunk}
+
+It will print the number of significant pathways under different centralities.
+For ORA extension, \texttt{cepa.all} in fact calls \texttt{cepa.ora.all} function.
+So the following code is same as the former code.
+\begin{Schunk}
+\begin{Sinput}
+> res = cepa.ora.all(dif = gene.list$dif, bk = gene.list$bk,
++       pc = PID.db$NCI)
+\end{Sinput}
+\end{Schunk}
+
+The p-values or adjusted p-values of all pathways under different centralities
+can be compared through the heatmap of p-values (Figure \ref{f2}). Users can select methods to adjust
+raw p-values.
+\begin{Schunk}
+\begin{Sinput}
+> plot(res)
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f2.pdf}
+\caption{Heatmap of p-values of all pathways}\label{f2}
+\end{center}
+\end{figure}
+
+By default, \texttt{CePa} use \texttt{p.adjust} to calculate adjusted p-values,
+so only methods valid for \texttt{p.adjust} can be applied to \texttt{CePa}. However,
+there is another popular method to adjust p-values: \texttt{qvalue}. \texttt{CePa}
+did not implement it since errors may occur when evaluating some kind of p-values.
+Nevertheless, users can override the default \texttt{p.adjust} to support \texttt{qvalue} 
+by themselves, use code below:
+\begin{Schunk}
+\begin{Sinput}
+> library(qvalue)
+> p.adjust = function(p, method = c("holm", "hochberg", "hommel", "bonferroni",
++                   "BH", "BY", "fdr", "none", "qvalue"), ...) {
++   if(method == "qvalue") {
++       # qvalue has more arguments, pass them by ...
++       qvalue(p, ...)$qvalue
++   } else {
++       stats::p.adjust(p, method)
++   }
++ }
+\end{Sinput}
+\end{Schunk}
+
+R will first look for \texttt{p.adjust} in \texttt{.GlobalEnv} environment and get your own \texttt{p.adjust}.
+
+By default, \texttt{plot} generates the heatmap containing all pathways.
+If only significant pathways are of interest, the \texttt{only.sig} argument
+can be set to \texttt{TRUE}. (Figure \ref{f3}). Here we do not set \texttt{cutoff}
+arguments because if adjusted method is used, the default cutoff is 0.05, while if user
+just wants the raw p-values, the default cutoff is 0.01.
+\begin{Schunk}
+\begin{Sinput}
+> plot(res, adj.method = "BH", only.sig = TRUE)
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f3.pdf}
+\caption{Heatmap of p-values of significant pathways}\label{f3}
+\end{center}
+\end{figure}
+
+The numeric values of p-values can be obtained via \texttt{p.table}. The function
+just returns the raw p-values.
+\begin{Schunk}
+\begin{Sinput}
+> pt = p.table(res)
+> head(pt)
+\end{Sinput}
+\begin{Soutput}
+                        equal.weight  in.degree  out.degree betweenness
+wnt_signaling_pathway    0.878121878 0.86413586 0.921078921 0.890109890
+cdc42_reg_pathway        0.858141858 0.84515485 0.818181818 0.852147852
+mtor_4pathway            0.777222777 0.80319680 0.707292707 0.596403596
+plk3_pathway             0.007992008 0.01598402 0.007992008 0.002997003
+era_genomic_pathway      0.079920080 0.08891109 0.047952048 0.074925075
+insulin_glucose_pathway  1.000000000 1.00000000 1.000000000 1.000000000
+                          in.reach   out.reach
+wnt_signaling_pathway   0.81018981 0.910089910
+cdc42_reg_pathway       0.84815185 0.859140859
+mtor_4pathway           0.83616384 0.422577423
+plk3_pathway            0.01398601 0.005994006
+era_genomic_pathway     0.09290709 0.017982018
+insulin_glucose_pathway 1.00000000 1.000000000
+\end{Soutput}
+\end{Schunk}
+
+We can get the result for single pathway under specific centrality from the 
+\texttt{cepa.all} object by identifying the index for the pathway and the index
+for the centrality.
+\begin{Schunk}
+\begin{Sinput}
+> g = get.cepa(res, id = "mapktrkpathway", cen = "in.reach")
+> g
+\end{Sinput}
+\begin{Soutput}
+  procedure: ora 
+  weight: in.reach 
+  p-value: 0.002 
+\end{Soutput}
+\end{Schunk}
+
+\texttt{g} is a \texttt{cepa} class object. It stores information of the
+evaluation of a single pathway under a single centrality. The distribution of the
+pathway score and the network graph can be generated by \texttt{plot} function on the 
+\texttt{cepa} object by specifying \texttt{type} argument (figure \ref{f4} and figure \ref{f5}).
+\begin{Schunk}
+\begin{Sinput}
+> plot(g, type = "graph")
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f4.pdf}
+\caption{Network visualization of a pathway}\label{f4}
+\end{center}
+\end{figure}
+
+\begin{Schunk}
+\begin{Sinput}
+> plot(g, type = "null")
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f5.pdf}
+\caption{Null distribution of pathway score}\label{f5}
+\end{center}
+\end{figure}
+
+By default, \texttt{type} is set to \texttt{graph}, and the node labels is combined from member genes. The exact name for each
+node can be set by \texttt{node.name} argument. Also, more detailed categories
+of the nodes can be set by \texttt{node.type} argument (Figure \ref{f6}). 
+\begin{Schunk}
+\begin{Sinput}
+> plot(g, node.name = PID.db$NCI$node.name,
++      node.type = PID.db$NCI$node.type)
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f6.pdf}
+\caption{Network visualization of a pathway, with node name and node type specified}\label{f6}
+\end{center}
+\end{figure}
+
+For simplicity, the plotting for the \texttt{cepa} object can be directly applied
+on the \texttt{cepa.all} object by specifying the index of the pathway and the 
+index of the centrality (Figure \ref{f6}).
+\begin{Schunk}
+\begin{Sinput}
+> plot(res, id = "mapktrkpathway", cen = "in.reach")
+> plot(res, id = "mapktrkpathway", cen = "in.reach", type = "null")
+> plot(res, id = "mapktrkpathway", cen = "in.reach",
++      node.name = PID.db$NCI$node.name,
++      node.type = PID.db$NCI$node.type)
+\end{Sinput}
+\end{Schunk}
+
+If users use \texttt{plot} to draw network graphs, the function would return an
+\texttt{igraph} object. So if users are not satisfy with the default graph, they
+can visulize by their own methods. An example of custumize your network can be found
+at the next section.
+\begin{Schunk}
+\begin{Sinput}
+> obj = plot(res, id = "mapktrkpathway", cen = "in.reach")
+> class(obj)
+[1] "igraph"
+\end{Sinput}
+\end{Schunk}
+
+The \texttt{igraph} package provides a \texttt{write.graph} function to output
+graph into several formats. As I have tried, with \texttt{graphml} format, 
+Cytoscape Web \cite{Lopes15092010} (http://http://cytoscapeweb.cytoscape.org/) can make a more beautiful
+and interactive visualization of the network.
+\begin{Schunk}
+\begin{Sinput}
+> write.graph(obj, file = "example-network.xml", format = "graphml")
+> write.graph(obj, file = "example-network.gml", format = "gml")
+\end{Sinput}
+\end{Schunk}
+
+
+Instead of analysis a list of pathways, users can also be focused on a single pathway
+under a single centrality by identifying the id of the pathway in the catalogue.
+\begin{Schunk}
+\begin{Sinput}
+> res.pathway = cepa(dif = gene.list$dif, bk = gene.list$bk,
++               pc = PID.db$NCI, "mapktrkpathway",
++               cen = "in.reach")
+\end{Sinput}
+\end{Schunk}
+
+Similarly, \texttt{cepa} function here directly calls \texttt{cepa.ora}.
+
+\section{GSA extension}
+
+In the traditional univariate GSA procedure, the score $s$ of the pathway is defined as:
+\begin{equation}\label{equation:3}
+    s = f(\mathbf{g})
+\end{equation}
+
+where $f$ transforms the gene-level statistic to a pathway-level statistic 
+(e.g. by summation, averaging) and $\mathbf{g}$ is the gene-level statistic vector which typically 
+comprises $t$-values. In ORA, $\mathbf{g}$ is a binary variant and $f(\mathbf{g})$ is summation. 
+In our model to extend GSA, gene-level statistic is first transformed to node-level 
+statistic. We define the vector of the node-level statistics as $\mathbf{d}$. 
+When nodes in pathways comprise multiple genes, the node-level statistic can be 
+considered as the largest principle component of the corresponding member genes. 
+Using centrality as the weight, the score is defined as
+\begin{equation}\label{equation:4}
+    s = f(\mathbf{wd})
+\end{equation}
+
+where $\mathbf{w}$ is the weight vector and the transformation function $f$ acts upon 
+the product of $\mathbf{w}$ and $\mathbf{d}$. Equation \ref{equation:4} incorporates centrality weight into the original node-level statistic. 
+The null distribution of the pathway score could then be generated by permuting the gene expression matrix.
+
+Since GSA procedure need a complete expression matrix, we first read the P53 microarray data set.
+The \texttt{P53\_symbol.gct} and \texttt{P53.cls} can be downloaded from
+http://mcube.nju.edu.cn/jwang/lab/soft/cepa/. \texttt{read.gct} and \texttt{read.cls}
+are simple functions to read expression data and phenotype data.
+\begin{Schunk}
+\begin{Sinput}
+> eset = read.gct("P53_symbol.gct")
+> # some process of the names of genes
+> rownames(eset) = gsub("\\s+.*$", "", rownames(eset))
+> label = read.cls("P53.cls", treatment="MUT", control="WT")
+\end{Sinput}
+\end{Schunk}
+
+Here, we also use \texttt{cepa.all} to do batch pathway analysis. The following
+code spent about 38 min with 1000 sample permutations.
+\begin{Schunk}
+\begin{Sinput}
+> res = cepa.all(mat = eset, label = label, pc = PID.db$NCI,
++                nlevel = "tvalue_sq", plevel = "mean")
+\end{Sinput}
+\begin{Soutput}
+  Calculate gene level values.
+  Calculate pathway score...
+    1/211, wnt_signaling_pathway...
+      Calculate node level value and permutate sample labels...
+      17 genes measured in the pathway...
+      - equal.weight: 0.587
+      - in.degree: 0.652
+      - out.degree: 0.777
+      - betweenness: 0.466
+      - in.reach: 0.56
+      - out.reach: 0.696
+    ...
+\end{Soutput}
+\end{Schunk}
+
+Here, we use \texttt{mat} and \texttt{label} arguments instead of \texttt{dif} and 
+\texttt{bk} arguments. In fact, when specifying \texttt{mat} and \texttt{label} arguments,
+\texttt{cepa.all} calls \texttt{cepa.univaraite.all}.
+
+In GSA procedure, first a node level statistic should be calculated. In \texttt{CePa} package,
+there are three methods to calculate node level statistics. User can choose from \texttt{tvalue},
+\texttt{tvalue\_abs} and \texttt{tvalue\_sq}. \texttt{tvalue\_abs} is choosen as
+the default node level method because it can capture two directional regulations.
+After we get the node level statistics in the pathway, a pathway level transformation
+should be applied. User can choose from \texttt{max}, \texttt{min}, \texttt{median}, 
+\texttt{sum}, \texttt{mean} and \texttt{rank}. \texttt{mean} is taken as default.
+
+The node level statistic can be self-defined. The self-defined function should only
+contain two argumetns, one for vector of expression value in treatment class and one
+for that in control class. E.g. we set the node level statistic as kind of robust t-value:
+\begin{Schunk}
+\begin{Sinput}
+> robust_tvalue = function(x, y) {
++    qx = quantile(x, c(0.1, 0.9))
++    qy = quantile(y, c(0.1, 0.9))
++
++    x = x[(x <= qx[2]) & (x >= qx[1])]
++    y = y[(y <= qy[2]) & (y >= qy[1])]
++
++    n1 = length(x)
++    n2 = length(y)
++    v1 = var(x)
++    v2 = var(y)
++    ifelse(v1 + v2 == 0, 0, (mean(x) - mean(y)) / sqrt(v1/n1 + v2/n2))
++ }
+> res = cepa.all(mat = eset, label = label, pc = PID.db$NCI,
++                nlevel = robust_tvalue, plevel = "mean")
+\end{Sinput}
+\end{Schunk}
+
+Similarly, the pathway level transformation can also be self-defined:
+\begin{Schunk}
+\begin{Sinput}
+> trim_mean = function(x) mean(x, trim = 0.2)
+> res = cepa.all(mat = eset, label = label, pc = PID.db$NCI,
++                nlevel = "tvalue_abs", plevel = trim_mean)
+\end{Sinput}
+\end{Schunk}
+
+Print the general result of the analysis and plot figures (figure \ref{f8}).
+\begin{Schunk}
+\begin{Sinput}
+> res
+\end{Sinput}
+\begin{Soutput}
+number of pathways: 211 
+
+Significant pathways (p.value <= 0.01):
+             Number
+equal.weight      6
+in.degree         6
+out.degree        7
+betweenness       5
+in.reach          7
+out.reach         7
+\end{Soutput}
+\end{Schunk}
+
+\begin{Schunk}
+\begin{Sinput}
+> plot(res, only.sig = TRUE, adj.method = "BH", cutoff = 0.1)
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.6\textwidth]{f8}
+\caption{Heatmap of FDRs of significant pathways}\label{f8}
+\end{center}
+\end{figure}
+
+If we are instread in p53 downstream pathway. First we extract this pathway under "in.degree"
+centrality from \texttt{res}.
+
+\begin{Schunk}
+\begin{Sinput}
+> g = get.cepa(res, id = "p53downstreampathway", cen="in.degree")
+> g
+\end{Sinput}
+\begin{Soutput}
+  procedure: gsa.univariate 
+  weight: in.degree 
+  p-value: 9.990e-04 
+\end{Soutput}
+\begin{Sinput}
+> plot(g)
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f9}
+\caption{Network visulization of a pathway}\label{f9}
+\end{center}
+\end{figure}
+
+Figure \ref{f9} illustrates the graph of p53 downstream pathway. Since the pathway is evaluated
+under GSA procedure, the color of each node is continues in which red refers to up-regulated,
+green refers to down-regulated and white refers to no-change.
+
+Maybe due to to many nodes in the graph, Figure \ref{f9} is really hard to read.
+However, since the plotting function returns an \texttt{igraph} object. We can customize
+it handly (Figure \ref{f12}).
+\begin{Schunk}
+\begin{Sinput}
+> g2 = plot(g)
+> # only label those nodes with high centralities
+> V(g2)$label[V(g2)$size < quantile(V(g2)$size, 0.95)] = ""
+> # we do not need margins
+> par(mar = c(0,0,0,0))
+> plot(g2)
+\end{Sinput}
+\end{Schunk}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{f12}
+\caption{customize the network graph}\label{f12}
+\end{center}
+\end{figure}
+
+\section{The \texttt{report} function}
+One of the advantages of \texttt{CePa} package is that it can generate a detailed
+report in HTML format. The function \texttt{report} is used to generate report.
+The report will locate in the current working directory. By default it only generate
+figures of the significant pathways, but this can be changed by setting \texttt{only.sig}
+argument to \texttt{FALSE}.
+\begin{Schunk}
+\begin{Sinput}
+> report(res)
+\end{Sinput}
+\begin{Soutput}
+  generate images for ap1_pathway ...
+  generate images for epopathway ...
+  generate images for il12_stat4pathway ...
+  generate images for foxm1pathway ...
+  generate images for mapktrkpathway ...
+  generate images for aurora_a_pathway ...
+  ...
+
+\end{Soutput}
+\begin{Sinput}
+> report(res, adj.method = "BH", cutoff = 0.2)
+> report(res, only.sig = FALSE)
+\end{Sinput}
+\end{Schunk}
+
+An example of the report can be found in figure \ref{f10}. After \texttt{CePa} version
+0.4, the network for pathways can be viewed interactively by Cytoscape Web \cite{Lopes15092010} (figure \ref{f11}).
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{f10}
+\caption{An report of the CePa analysis}\label{f10}
+\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.7\textwidth]{f11}
+\caption{Network is visualized by Cytoscape Web}\label{f11}
+\end{center}
+\end{figure}
+
+\section{Parallel computing}
+Since \texttt{CePa} evaluates pathways independently, the process can be realized
+through parallel computing. In R statistical environment, there are many packages
+focusing on parallel computing such as \texttt{snow}, \texttt{multicore}, etc. 
+After version 4.0, the package implemented a \texttt{cepa.all.parallel} function to do
+parallel computing.
+
+\texttt{cepa.all.parallel} use \texttt{snow} package.
+
+All the arguments for \texttt{cepa.all.parallel} are same as the arguments for \texttt{cepa.all}
+except the \texttt{ncores} arguments. The \texttt{ncores} specifies the number of cores for
+parallel computing.
+\begin{Schunk}
+\begin{Sinput}
+> res = cepa.all.parallel(dif = gene.list$dif, bk = gene.list$bk,
++       pc = PID.db$NCI, ncores = 4)
+> res = cepa.all.parallel(mat = eset, label = label, pc = PID.db$NCI,
+        nlevel = "tvalue_sq", plevel = "mean", ncores = 4)
+\end{Sinput}
+\end{Schunk}
+
+The returned value \texttt{res} is a \texttt{cepa.all} class object.
+
+\bibliographystyle{abbrv}
+\bibliography{bibliography}
+
+\end{document}
+

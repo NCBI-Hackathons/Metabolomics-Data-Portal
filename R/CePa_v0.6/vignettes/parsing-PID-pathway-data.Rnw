@@ -1,0 +1,132 @@
+% \VignetteIndexEntry{parsing-PID}
+% \VignetteDepends{CePa}
+% \VignetteKeywords{Pathway Enrichment Analysis}
+% \VignettePackage{CePa}
+
+
+\documentclass[a4paper]{article}
+
+\title{Parsing PID pathway data}
+
+\author{Zuguang Gu}
+
+\usepackage{Sweave}
+
+\begin{document}
+
+\maketitle 
+
+Pathway Interaction Database (PID) (http://pid.nci.nih.gov/) provides interaction data of pathways in several formats (XML and BioPAX). Here we parsed the PID XML format data (ftp://ftp1.nci.nih.gov/pub/PID/XML/).
+
+Data stored in PID XML file can be divided into four levels: pathway level, interaction level, node level and gene/compound level. The relationship between four levels is visualized in figure \ref{figure:levels}. Generally speaking, a pathway catalogue contains a list of pathways. Each pathway is composed of a list of interactions. Each interaction is represented as relation between an input node and an output node. Each node has different characters depending on whether it is a single protein, a complex or other non-protein molecules.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{levels.pdf}
+\caption{Representation of PID pathway data structure.}\label{figure:levels}
+\end{center}
+\end{figure}
+
+Pathway level data is embedded in \texttt{Pathway} block (figure \ref{figure:pathwayblock}). Basic information of pathways is provided here such as the pathway ID, full name and short name of the pathway. The \texttt{PathwayComponentList} block contains interactions that are involved in the pathway. Interactions are represented as interaction IDs (value of \texttt{interaction\_idref} parameter) that can be linked to the specific interaction records. It should be noted that in CePa we take the short name of the pathway as the pathway unique ID rather than the value specified in \texttt{id} parameter, \texttt{Pathway} tag, because the value for \texttt{id} parameter is only for cross-reference in XML file and the short name is the unique ID in PID web site.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{pathway-part.PNG}
+\caption{An example of pathway block in PID XML file.}\label{figure:pathwayblock}
+\end{center}
+\end{figure}
+
+The pathway level data stored in R looks like as follows in which each pathway is an item of a list and contains a vector of interaction IDs.
+
+\begin{Schunk}
+\begin{Sinput}
+> head(PID.db$NCI$pathList, n = 2)
+\end{Sinput}
+\begin{Soutput}
+$wnt_signaling_pathway
+ [1] "203098" "203087" "203104" "203106" "203125" "203127"
+ [7] "203092" "203142" "203097" "203111" "203099" "203118"
+[13] "203103" "203137" "203143" "203091" "203088" "203141"
+[19] "203128" "203089" "203101" "203117" "203126" "203140"
+[25] "203095" "203108" "203119" "203129" "203113" "203120"
+[31] "203094" "203102" "203122" "203136" "203145" "203105"
+[37] "203123" "203144" "203130" "203132" "203124" "203107"
+[43] "203110" "203093" "203133" "203090" "203096" "203109"
+[49] "203100" "203121" "203116" "203112"
+
+$cdc42_reg_pathway
+ [1] "203416" "203396" "203420" "203393" "203405" "203418"
+ [7] "203392" "203415" "203388" "203408" "203389" "203390"
+[13] "203403" "203412" "203398" "203410" "203406" "203395"
+[19] "203391" "203401" "203394" "203419" "203404" "203397"
+[25] "203399" "203407" "203402" "203400" "203413" "203411"
+[31] "203409" "203414"
+\end{Soutput}
+\end{Schunk}
+
+Interaction level data is embedded in \texttt{Interaction} block (figure \ref{interactionblock}). The most important part in it is \texttt{InteractionComponentList} block. In the block, interaction is represented by a list of nodes (in this block, nodes are also called molecules) and their relations. There are basically three types of molecules in an interaction: input molecules, output molecules and agents identified by \texttt{role\_type} parameter, \texttt{InteractionComponent} tag. A detailed characters and relations between molecules are provided such as the location of the molecule and type of the interaction. The molecules involved in the interaction are recorded with molecule IDs that can be linked to the detailed information of them. CePa only extracts the input molecule ID, output molecule ID and the agent ID to construct interactions.
+
+The interactions in PID database some kind look like chemical reaction equations in which agents are similar to enzymes. In order to establish a pathway network, some transformations should be applied. For example in figure 3, the input molecule and the output molecule are same with just different locations, so it is not proper if we use the interaction in which input molecule directs to output molecule while leaving the agent alone. Thus we use the following rules:
+
+\begin{enumerate}
+  \item All agents direct to input molecules.
+  \item If there is no input molecule, agents direct to output molecules.
+  \item All input molecules direct to output molecules.
+  \item Self-loop is not allowed.
+\end{enumerate}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{interaction-part.PNG}
+\caption{An example of interaction block in PID XML file.}\label{figure:interactionblock}
+\end{center}
+\end{figure}
+
+The interaction data stored in R looks like as follows in which the fist column are the interaction IDs the second and the third columns are the input node IDs and the output node IDs involved in.
+
+\begin{Schunk}
+\begin{Sinput}
+> head(PID.db$NCI$interactionList)
+\end{Sinput}
+\begin{Soutput}
+  interaction.id  input output
+1         503376 507485 506711
+2         503376 507487 507485
+3         204164 202538 208490
+4         204164 208487 208490
+5         100688 101169 101176
+6         100688 101177 101176
+\end{Soutput}
+\end{Schunk}
+
+Node level and gene level data are embedded in \texttt{Molecule} block (figure \ref{figure:moleculeblock}). Each molecule record is unified with an ID. The \texttt{molecule\_type} parameter identifies the type of the molecule. If the type is protein, the link to UniProt or GenBank database is given. If the molecule is a complex or protein family, the record only provides the component IDs that can be queried from other \texttt{Molecule} blocks. Thus it is convenient to construct a complex molecule that can be composed of proteins, complex and families, repeatedly. So, with \texttt{Molecule} data, the mapping from molecule IDs to protein/gene IDs can be generated.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{molecule-part.PNG}
+\caption{An example of molecule block in PID XML file.}\label{figure:moleculeblock}
+\end{center}
+\end{figure}
+
+The mapping data stored in R looks like as follows in which the first column is the node IDs and the second column is the gene IDs (here using gene symbols).
+
+\begin{Schunk}
+\begin{Sinput}
+> head(PID.db$NCI$mapping)
+\end{Sinput}
+\begin{Soutput}
+  node.id  symbol
+1  202230 ARHGAP6
+2  201405    XIAP
+3  503376  SLC7A2
+4  203548   SATB1
+5  201647    CRY2
+6  508774     CRH
+\end{Soutput}
+\end{Schunk}
+
+The parsing procedure has been implemented as Perl scripts, the scripts can directly generate an RData file that can be loaded into R session.
+
+URL for parsing script: http://mcube.nju.edu.cn/jwang/lab/soft/cepa/
+
+\end{document}

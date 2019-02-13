@@ -1,0 +1,9 @@
+biopax.Rdata
+biopax2.Rdata
+R2
+IDConvert
+*.owl
+*.RData
+*.Rdata
+genelist
+*.tar.gz

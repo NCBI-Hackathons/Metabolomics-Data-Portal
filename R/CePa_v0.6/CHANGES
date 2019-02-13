@@ -1,0 +1,25 @@
+0.2
+- generate.pathway: remove duplicat connections between two nodes.
+
+0.3
+- Add univariate procedures
+
+0.4
+- remove function eccentricity since igraph v 6.0 has add it.
+- change network visualization part with the igraph v 6.0.
+- PID data has been updated to the latest version (at 2012_07_19 09:34::20).
+- network can be visualized by Cytoscape web.
+- add function for parallel computing
+
+0.5
+- change gene level to node level
+- node level can be self-defined
+- pathway level can be self-defined
+- adjust the figures
+- handle if core number are larger than pathways
+- doc and vignette habe bee improved
+- numbers of differential genes/nodes and all genes/nodes can be listed in the report
+- add two vignettes
+
+0.6
+- bug fixed

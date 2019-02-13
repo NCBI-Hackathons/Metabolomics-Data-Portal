@@ -1,0 +1,12 @@
+import(graph, gRbase, qpgraph, fields)
+importFrom(methods, as)
+importFrom(stats, cov, pchisq, pf, qchisq, t.test)
+
+export(clique.var.test, clique.mean.test,
+       pathway.var.test, pathway.mean.test,
+       render.significant.cliques)
+
+S3method(print, clique.var.test)
+S3method(print, clique.mean.test)
+S3method(print, pathway.var.test)
+S3method(print, pathway.mean.test)

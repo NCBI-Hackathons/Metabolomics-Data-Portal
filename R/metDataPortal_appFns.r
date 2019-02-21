@@ -1,18 +1,15 @@
 
-getData = function(input) {
-  print("called getData()...")
-  data = .GlobalEnv$all_data
-  pts = as.character(unlist(sapply(input$showThese, function(i) cohorts[[i]])))
-  ind = which(colnames(data) %in% pts)
-  data = data[,ind]
-  data = apply(data, c(1,2), function(i) round(i, 2))
-  res = cbind(rownames(data), data)
-  colnames(res) = c("Metabolite", colnames(data))
-  res = as.matrix(res)
-  return(res)
-}
 
+#' Get Patient Report
+#' @param PatientID - The patient identifier string associated with the patient's profile. 
+#' @param all_data - The entire data matrix loaded based on the diagnosis selected in the dropdown menu input$diagClass.
+#'
+#' @return patientReport - a data table with the metabolites and z-scores associated with the selected patient ID.
+#' @export
+#'
+#' @examples
 getPatientReport = function(input, all_data) {
+  
   print(input$diagClass)
   print(input$ptIDs)
   
@@ -53,18 +50,85 @@ getPatientReport = function(input, all_data) {
   return(list(patientReport=data))
 }
 
-getPathwayMap = function(input, zscore.data) {
-  #' Generate pathway map with patient data superimposed.
-  #' @param Pathway.Name - The name of the pathway map you want to plot patient data on.
-  #' @param PatientID - An identifier string associated with the patient.
-  #' @param patient.zscore - A named vector of metabolites with corresponding z-scores.
-  #' @param scalingFactor - Integer associated with increase in node size.
-  #' @param outputFilePath - The directory in which you want to store image files.
 
+
+
+#' getPathwayIgraph
+#'
+#' @param Pathway.Name - The name of the pathway map for which you want the topological information.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+getPathwayIgraph = function(input, Pathway.Name) {
+  Pathway.Name = gsub(" ", "-", input$pathwayMapId)
+  pmap.path = "../inst/extdata"
+  if (Pathway.Name=="All") {
+    load(sprintf("%s/RData/allPathways2.RData", pmap.path))
+    V(ig)$label[which(V(ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
+    Pathway.Name = "allPathways"
+  } else {
+    load(sprintf("%s/RData/%s.RData", pmap.path, Pathway.Name))
+  }
+  template.ig = ig
+  
+  # Load id to display label mappings
+  nodeDisplayNames= read.table(sprintf("%s/%s/DisplayName-%s.txt", pmap.path, Pathway.Name, Pathway.Name),
+                               header=TRUE, sep="\n", check.names = FALSE)
+  tmp = apply(nodeDisplayNames, 1, function(i) unlist(strsplit(i, split= " = "))[2])
+  tmp.nms = apply(nodeDisplayNames, 1, function(i) unlist(strsplit(i, split= " = "))[1])
+  ind = suppressWarnings(as.numeric(tmp.nms))
+  ind2 = as.logical(sapply(ind, function(i) is.na(i)))
+  tmp = tmp[-which(ind2)]
+  tmp.nms = tmp.nms[-which(ind2)]
+  nodeDisplayNames = as.character(tmp)
+  names(nodeDisplayNames) = tmp.nms
+  nodeDisplayNames = gsub("\\+", " ", nodeDisplayNames)
+  # Load id to node types mappings
+  nodeType = read.table(sprintf("%s/%s/CompoundType-%s.txt", pmap.path, Pathway.Name, Pathway.Name),
+                        header=TRUE, sep="\n", check.names = FALSE)
+  tmp = apply(nodeType, 1, function(i) unlist(strsplit(i, split= " = "))[2])
+  tmp.nms = apply(nodeType, 1, function(i) unlist(strsplit(i, split= " = "))[1])
+  ind = suppressWarnings(as.numeric(tmp.nms))
+  ind2 = as.logical(sapply(ind, function(i) is.na(i)))
+  tmp = tmp[-which(ind2)]
+  tmp.nms = tmp.nms[-which(ind2)]
+  nodeType = as.character(tmp)
+  names(nodeType) = tmp.nms
+  nodeType = nodeType[which(names(nodeType) %in% names(nodeDisplayNames))]
+  
+  node.labels = vector("character", length = length(V(template.ig)$name))
+  node.types = vector("character", length = length(V(template.ig)$name))
+  for (n in 1:length(V(template.ig)$name)) {
+    node.labels[n] = URLdecode(as.character(nodeDisplayNames[V(template.ig)$name[n]]))
+    node.types[n] = as.character(nodeType[V(template.ig)$name[n]])
+  }
+  
+  V(template.ig)$label = node.labels
+  V(template.ig)$shape = node.types
+  V(template.ig)$shape[grep("Enzyme", V(template.ig)$shape)] = "rectangle"
+  V(template.ig)$shape[grep("Metabolite", V(template.ig)$shape)] = "circle"
+  template.ig = delete.vertices(template.ig, v=V(template.ig)$name[-which(V(template.ig)$shape %in% c("rectangle", "circle"))])
+
+  return(template.ig)
+}
+
+#' Get Pathway Map: Generate pathway map with patient data superimposed.
+#'
+#' @param input - List of parameters passed from R shiny from UI. Important parameters will be input$ptIDs, input$pathwayMapId, and
+#'                input$scalingFactor.
+#' @param zscore.data - A named vector of metabolites with corresponding z-scores.
+#'
+#' @return An SVG image of the selected pathway map in input$pathwayMapId, with the mean profile of input$ptIDs
+#'         superimposed.
+#' @export
+#'
+#' @examples
+getPathwayMap = function(input, zscore.data) {
   if (length(input$ptIDs)==0) {
     return(list(pmap = list(src="", contentType = 'image/svg+xml'), colorbar = NULL))
   } else {
-    Pathway.Name = gsub(" ", "-", input$pathwayMapId)
     PatientID = input$ptIDs
     scalingFactor = input$scalingFactor
     tmp = rownames(zscore.data)
@@ -75,51 +139,12 @@ getPathwayMap = function(input, zscore.data) {
       patient.zscore = zscore.data[,which(colnames(zscore.data)==input$ptIDs)]
     }
     names(patient.zscore) = tmp
-    #print(patient.zscore)
-
+    template.ig = getPathwayIgraph(input, Pathway.Name)
+    
+    node.labels = V(template.ig)$label
+    node.types = V(template.ig)$shape
     pmap.path = "../inst/extdata"
     load(sprintf("%s/complexNodes.RData", pmap.path))
-    if (Pathway.Name=="All") {
-      load(sprintf("%s/RData/allPathways2.RData", pmap.path))
-      V(ig)$label[which(V(ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
-      scalingFactor=1
-      Pathway.Name = "allPathways"
-    } else {
-      load(sprintf("%s/RData/%s.RData", pmap.path, Pathway.Name))
-    }
-    template.ig = ig
-    
-    # Load id to display label mappings
-    nodeDisplayNames= read.table(sprintf("%s/%s/DisplayName-%s.txt", pmap.path, Pathway.Name, Pathway.Name),
-                                 header=TRUE, sep="\n", check.names = FALSE)
-    tmp = apply(nodeDisplayNames, 1, function(i) unlist(strsplit(i, split= " = "))[2])
-    tmp.nms = apply(nodeDisplayNames, 1, function(i) unlist(strsplit(i, split= " = "))[1])
-    ind = suppressWarnings(as.numeric(tmp.nms))
-    ind2 = as.logical(sapply(ind, function(i) is.na(i)))
-    tmp = tmp[-which(ind2)]
-    tmp.nms = tmp.nms[-which(ind2)]
-    nodeDisplayNames = as.character(tmp)
-    names(nodeDisplayNames) = tmp.nms
-    nodeDisplayNames = gsub("\\+", " ", nodeDisplayNames)
-    # Load id to node types mappings
-    nodeType = read.table(sprintf("%s/%s/CompoundType-%s.txt", pmap.path, Pathway.Name, Pathway.Name),
-                          header=TRUE, sep="\n", check.names = FALSE)
-    tmp = apply(nodeType, 1, function(i) unlist(strsplit(i, split= " = "))[2])
-    tmp.nms = apply(nodeType, 1, function(i) unlist(strsplit(i, split= " = "))[1])
-    ind = suppressWarnings(as.numeric(tmp.nms))
-    ind2 = as.logical(sapply(ind, function(i) is.na(i)))
-    tmp = tmp[-which(ind2)]
-    tmp.nms = tmp.nms[-which(ind2)]
-    nodeType = as.character(tmp)
-    names(nodeType) = tmp.nms
-    nodeType = nodeType[which(names(nodeType) %in% names(nodeDisplayNames))]
-
-    node.labels = vector("character", length = length(V(template.ig)$name))
-    node.types = vector("character", length = length(V(template.ig)$name))
-    for (n in 1:length(V(template.ig)$name)) {
-      node.labels[n] = URLdecode(as.character(nodeDisplayNames[V(template.ig)$name[n]]))
-      node.types[n] = as.character(nodeType[V(template.ig)$name[n]])
-    }
     nms = node.labels[which(node.labels %in% names(patient.zscore))]
     patient.zscore = patient.zscore[which(names(patient.zscore) %in% nms)]
     granularity = 2
@@ -168,7 +193,7 @@ getPathwayMap = function(input, zscore.data) {
         }
       }
     }
-    V(template.ig)$size[which(node.types=="Class")]
+    #V(template.ig)$size[which(node.types=="Class")]
     V(template.ig)$label = capitalize(tolower(V(template.ig)$label))
     wrap_strings = function(vector_of_strings,width){
       as.character(sapply(vector_of_strings, FUN=function(x){

@@ -19,7 +19,7 @@ remotes::install_github("NCBI-Hackathons/Metabolomics-Data-Portal")
 
 ## Data formats
 - Input data
-  - tabular data with rows as metabolites and columns as samples; columns should be transformed Z-scores
+  - tabular data with rows as metabolites and columns as samples; data should be transformed Z-scores
 - [Example data](https://github.com/NCBI-Hackathons/Metabolomics-Data-Portal/tree/master/data)
 
 

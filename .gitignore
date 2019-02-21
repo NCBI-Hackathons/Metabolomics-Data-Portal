@@ -1,0 +1,27 @@
+
+# History files
+.Rhistory
+.RData
+
+# Example code in package build process
+*-Ex.R
+.Rproj.user
+
+# ShinyApps manifest
+*.dcf
+
+# Fonts
+*.ttc
+
+# DS Store
+.DS_Store
+
+
+# Log Files
+logfile*.txt
+
+# Packrat lockfiles generated during RSC deploy
+packrat.lock
+
+# Bak files
+*.bak

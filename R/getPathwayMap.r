@@ -1,119 +1,3 @@
-
-
-#' Get Patient Report
-#' @param PatientID - The patient identifier string associated with the patient's profile. 
-#' @param all_data - The entire data matrix loaded based on the diagnosis selected in the dropdown menu input$diagClass.
-#'
-#' @return patientReport - a data table with the metabolites and z-scores associated with the selected patient ID.
-#' @export
-#'
-#' @examples
-getPatientReport = function(input, all_data) {
-  
-  print(input$diagClass)
-  print(input$ptIDs)
-  
-  # MetaboliteName Zscore
-  all_data = data.matrix(all_data)
-  tmp.zscore = rownames(all_data)
-  if (length(input$ptIDs)>1) {
-    zscore.data = apply(all_data[ , which(colnames(all_data) %in% input$ptIDs)], 1, function(i) mean(na.omit(i)))
-  } else {
-    zscore.data = all_data[ , which(colnames(all_data)==input$ptIDs)]
-  }
-  names(zscore.data) = tmp.zscore
-  print(head(zscore.data))
-  
-  ind = which(is.na(zscore.data))
-  if (length(ind)>0) {
-    zscore.data = zscore.data[-ind]
-  }
-
-  data = data.frame(Metabolite=character(), Zscore=numeric(), stringsAsFactors = FALSE)
-  for (row in 1:length(zscore.data)) {
-    data[row, "Metabolite"] = names(zscore.data)[row]
-    data[row, "Zscore"] = round(zscore.data[names(zscore.data)[row]], 2)
-  }
-
-  # Remove mets that were NA in zscore 
-  ind0 = which(is.na(data[,"Zscore"]))
-  if (length(ind0)>0) {
-    data = data[-ind0,]
-  }
-  print(dim(data))
-  
-  # Order by abs(Zscore)
-  class(data[,"Zscore"]) = "numeric"
-  data = data[order(abs(data[,"Zscore"]), decreasing = TRUE), ]
-  names(data) = c("Metabolite", "Z-score")
-
-  return(list(patientReport=data))
-}
-
-
-
-
-#' getPathwayIgraph
-#'
-#' @param Pathway.Name - The name of the pathway map for which you want the topological information.
-#'
-#' @return
-#' @export
-#'
-#' @examples
-getPathwayIgraph = function(input, Pathway.Name) {
-  Pathway.Name = gsub(" ", "-", input$pathwayMapId)
-  pmap.path = "../inst/extdata"
-  if (Pathway.Name=="All") {
-    load(sprintf("%s/RData/allPathways2.RData", pmap.path))
-    V(ig)$label[which(V(ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
-    Pathway.Name = "allPathways"
-  } else {
-    load(sprintf("%s/RData/%s.RData", pmap.path, Pathway.Name))
-  }
-  template.ig = ig
-  
-  # Load id to display label mappings
-  nodeDisplayNames= read.table(sprintf("%s/%s/DisplayName-%s.txt", pmap.path, Pathway.Name, Pathway.Name),
-                               header=TRUE, sep="\n", check.names = FALSE)
-  tmp = apply(nodeDisplayNames, 1, function(i) unlist(strsplit(i, split= " = "))[2])
-  tmp.nms = apply(nodeDisplayNames, 1, function(i) unlist(strsplit(i, split= " = "))[1])
-  ind = suppressWarnings(as.numeric(tmp.nms))
-  ind2 = as.logical(sapply(ind, function(i) is.na(i)))
-  tmp = tmp[-which(ind2)]
-  tmp.nms = tmp.nms[-which(ind2)]
-  nodeDisplayNames = as.character(tmp)
-  names(nodeDisplayNames) = tmp.nms
-  nodeDisplayNames = gsub("\\+", " ", nodeDisplayNames)
-  # Load id to node types mappings
-  nodeType = read.table(sprintf("%s/%s/CompoundType-%s.txt", pmap.path, Pathway.Name, Pathway.Name),
-                        header=TRUE, sep="\n", check.names = FALSE)
-  tmp = apply(nodeType, 1, function(i) unlist(strsplit(i, split= " = "))[2])
-  tmp.nms = apply(nodeType, 1, function(i) unlist(strsplit(i, split= " = "))[1])
-  ind = suppressWarnings(as.numeric(tmp.nms))
-  ind2 = as.logical(sapply(ind, function(i) is.na(i)))
-  tmp = tmp[-which(ind2)]
-  tmp.nms = tmp.nms[-which(ind2)]
-  nodeType = as.character(tmp)
-  names(nodeType) = tmp.nms
-  nodeType = nodeType[which(names(nodeType) %in% names(nodeDisplayNames))]
-  
-  node.labels = vector("character", length = length(V(template.ig)$name))
-  node.types = vector("character", length = length(V(template.ig)$name))
-  for (n in 1:length(V(template.ig)$name)) {
-    node.labels[n] = URLdecode(as.character(nodeDisplayNames[V(template.ig)$name[n]]))
-    node.types[n] = as.character(nodeType[V(template.ig)$name[n]])
-  }
-  
-  V(template.ig)$label = node.labels
-  V(template.ig)$shape = node.types
-  V(template.ig)$shape[grep("Enzyme", V(template.ig)$shape)] = "rectangle"
-  V(template.ig)$shape[grep("Metabolite", V(template.ig)$shape)] = "circle"
-  template.ig = delete.vertices(template.ig, v=V(template.ig)$name[-which(V(template.ig)$shape %in% c("rectangle", "circle"))])
-
-  return(template.ig)
-}
-
 #' Get Pathway Map: Generate pathway map with patient data superimposed.
 #'
 #' @param input - List of parameters passed from R shiny from UI. Important parameters will be input$ptIDs, input$pathwayMapId, and
@@ -122,10 +6,24 @@ getPathwayIgraph = function(input, Pathway.Name) {
 #'
 #' @return An SVG image of the selected pathway map in input$pathwayMapId, with the mean profile of input$ptIDs
 #'         superimposed.
-#' @export
-#'
+#' @import igraph
+#' @import grid
+#' @export getPathwayMap
 #' @examples
+#' data(Miller2015_Heparin)
+#' # Input is supplied by R shiny app, but you can hard code parameters as a list object, too, to test functionality.
+#' input = list()
+#' input$ptIDs = colnames(Miller2015_Heparin)[4]
+#' input$diagClass = "paa"
+#' input$pathwayMapId = "allPathways"
+#' input$scalingFactor = 1
+#' svg_img = getPathwayMap(input, Miller2015_Heparin)
+#' # SVG file will be saved at following path
+#' svg_img$src
+#' # Colorbar can be visualized this way
+#' plot(svg_img$colorbar)
 getPathwayMap = function(input, zscore.data) {
+  Pathway.Name = input$pathwayMapId
   if (length(input$ptIDs)==0) {
     return(list(pmap = list(src="", contentType = 'image/svg+xml'), colorbar = NULL))
   } else {
@@ -143,7 +41,7 @@ getPathwayMap = function(input, zscore.data) {
     
     node.labels = V(template.ig)$label
     node.types = V(template.ig)$shape
-    pmap.path = "../inst/extdata"
+    pmap.path = "./inst/extdata"
     load(sprintf("%s/complexNodes.RData", pmap.path))
     nms = node.labels[which(node.labels %in% names(patient.zscore))]
     patient.zscore = patient.zscore[which(names(patient.zscore) %in% nms)]
@@ -165,7 +63,7 @@ getPathwayMap = function(input, zscore.data) {
         V(template.ig)$color[i] = "#D3D3D3"
       }
     }
-
+    
     mapped=0
     complexNodes = complexNodes[which(names(complexNodes) %in% node.labels)]
     # Next do the complex nodes
@@ -193,8 +91,7 @@ getPathwayMap = function(input, zscore.data) {
         }
       }
     }
-    #V(template.ig)$size[which(node.types=="Class")]
-    V(template.ig)$label = capitalize(tolower(V(template.ig)$label))
+    V(template.ig)$label = tolower(V(template.ig)$label)
     wrap_strings = function(vector_of_strings,width){
       as.character(sapply(vector_of_strings, FUN=function(x){
         paste(strwrap(x, width=width), collapse="\n")
@@ -203,7 +100,7 @@ getPathwayMap = function(input, zscore.data) {
     V(template.ig)$label = wrap_strings(V(template.ig)$label, 15)
     V(template.ig)$label.cex = 0.75
     template.ig = delete.vertices(template.ig, v=grep(unlist(strsplit(Pathway.Name, split="-"))[1], V(template.ig)$label))
-
+    
     svg_filename = sprintf("%s/pmap-%s_%s.svg", getwd(), Pathway.Name, input$diagClass)
     svg(filename = svg_filename, width=10, height=10)
     par(mar=c(1,0.2,1,1))
@@ -213,7 +110,7 @@ getPathwayMap = function(input, zscore.data) {
            pt.cex=seq(1, ceiling(max(V(template.ig)$size)), scalingFactor),
            col='black',pch=21, pt.bg='white', cex=1, horiz=TRUE)
     dev.off()
-
+    
     # Get colorbar
     z = seq(floor(min(na.omit(patient.zscore))), ceiling(max(na.omit(patient.zscore))), 1/granularity)
     df = data.frame(Zscores = z[1:length(redblue)],
@@ -234,7 +131,6 @@ getPathwayMap = function(input, zscore.data) {
     return(list(pmap = list(src=svg_filename, contentType = 'image/svg+xml'), colorbar = leg))
   }
 }
-
 
 
 

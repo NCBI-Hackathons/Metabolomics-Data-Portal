@@ -29,6 +29,9 @@ Modern day topological enrichment methods are all narrowly implemented for the a
 # Our Solution
 We have examined several R package implementation of existing topological enrichment methods and modified them to be useful for the analysis of metabolite sets, and for an N-of-1 metabolomics data.
 
+<img src=papers/flow-chart.png width="500" align="center">
+
+
 
 
 Features:

@@ -3,19 +3,19 @@ require(DT)
 require(shinydashboard)
 require(ggplot2)
 require(igraph)
-
+require(grid)
+require(MetabolomicsDataPortal)
+require(Hmisc)
 
 # Make sure you are in the current directory of your local installation of the MetDataPortal package
-setwd("~/Downloads/Metabolomics-Data-Portal/R/")
-source("metDataPortal_appFns.r")
-
-miller_data = readRDS("Miller2015_Heparin.rds")
+setwd(find.package("MetabolomicsDataPortal"))
+miller_data = readRDS("R/Miller2015_Heparin.rds")
 miller_data = miller_data[,-which(colnames(miller_data) %in% c("FillRate", "Mean.NormPop", "STD.NormPop"))]
 print(colnames(miller_data))
 print(dim(miller_data))
 miller_data = apply(miller_data, c(1,2), as.numeric)
 
-wangler_data = readRDS("Wangler2017_EDTA.rds")
+wangler_data = readRDS("R/Wangler2017_EDTA.rds")
 wangler_data = wangler_data[,-which(colnames(wangler_data) %in% c("Average", "Standard.dev"))]
 print(colnames(wangler_data))
 print(dim(wangler_data))
@@ -69,7 +69,7 @@ ui = dashboardPage(
                                        #tableOutput("setbased")
                                       ), 
                                     box(title="Topological-based Enrichment Analyses", status="info", solidHeader=TRUE, width=8, collapsible=TRUE#,
-                                      #dataTableOutput("topological")
+                                      #dataTableOutput("spia"), dataTableOutput("cepa")
                                     )
                                   ),
                           fluidRow(box(title="Pathway Map", status="primary", solidHeader = TRUE,
@@ -77,9 +77,9 @@ ui = dashboardPage(
                                                    selectInput(inputId = "pathwayMapId", label = "Pathway Map", 
                                                                choices = c("All", "Arginine Metabolism", "Ascorbate Metabolism", "Asp-Glu Metabolism", 
                                                                            "BCAA Metabolism", "Benzoate Metabolism", "Beta-Oxidation", "Bile-Acid Metabolism", 
-                                                                           "Carnitine Biosynthesis", "Cholesterol Synthesis", "Creatine Metabolism", "DicarboxylicAcid Metabolism",
-                                                                           "Eicosanoids", "Endocannabinoid Synthesis", "FattyAcid Metabolism", "Fibrinogen Cleavage Peptides",
-                                                                           "GABA Shunt", "Galactose Metabolism", "Glutathione Metabolism", "Gly-Ser-Thr Metabolism", "Glycogen Metabolism",
+                                                                           "Carnitine Biosynthesis", "Cholesterol Synthesis", "Creatine Metabolism", "Dicoarboxylic Acid Metabolism",
+                                                                           "Eicosanoids", "Endocannabinoid Synthesis", "Fatty Acid Metabolism", "Fibrinogen Cleavage Peptides",
+                                                                           "GABA Shunt", "Galactose Metabolism", "Glutathione Metabolism", "Gly-Ser-Thr Metabaolism", "Glycogen Metabolism",
                                                                            "Glycolysis", "Glycosylation", "Hemoglobin-Porphyrin Metabolism", "Histidine Metabolism", "Inositol Metabolism",
                                                                            "Ketone Bodies", "Lysine Catabolism", "Met-Cys Metabolism", "Mevalonate Metabolism", "Nicotinate-Nicotinamide Metabolism",
                                                                            "Pantothenate Metabolism", "Pentose-Phosphate Metabolism", "Phe-Tyr Metabolism", "Phospholipid Metabolism", "Polyamine Metabolism",
@@ -132,9 +132,6 @@ server = function(input, output, session) {
         #output$msea = renderTable(getMSEA(input))
         #output$cepa = renderTable(getCePa(input))
         #output$spia = renderTable(getSPIA(input))
-        #output$clipper = renderTable(getClipper(input))
-        #output$topGSA = renderTable(getTopologyGSA(input))
-        #output$degraph = renderTable(getDEGraph(input))
         
         observeEvent(input$pathwayMapId, priority=0, {
           print(input$pathwayMapId)

@@ -1,4 +1,19 @@
 
+#' Title
+#'
+#' @param z_vec 
+#' @param pathway.name 
+#' @param pmap.path 
+#' @param type 
+#' @param thresh 
+#' @param cen 
+#' @param cen.name 
+#' @param iter 
+#'
+#' @return CEPA
+#' @export
+#'
+#' @examples
 get.cepa <- function(z_vec, pathway.name = NULL, pmap.path="extdata", type = "ora",  
   thresh = 1.96, #required arguments
   cen = "betweenness", 

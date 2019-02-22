@@ -1,5 +1,5 @@
-# VERSION 1.0
-# AUTHOR: 
+# VERSION 1.0, tagged with R version 3.5.2.
+# AUTHORS: NIH Metabolomics Data Portal Hackathon Team
 # DESCRIPTION: Shiny container with packages needed to perform metabaolmics analysis and visualziation
 # BUILD: docker build --rm -t gautham1/shiny-metabolomics:3.5.2 .
 

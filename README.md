@@ -12,7 +12,7 @@ Within the field of metabolomics is the distinction between clinical research me
 
 Differences in data collection percolate to differences in analysis needs. Currently, for N-of-1 clinical testing metabolomics, state of the art analysis methods rely on pathway enrichment methods.
 
-<img src=papers/Burrage-et-al_2019.png" align="center">
+<img src=papers/Burrage-et-al_2019.png align="center">
 
 To quantify perturbations observed in pathway knowledgebases, popular set-based methods such as over-representation analysis (ORA) and metabolite-set enrichment analysis (MSEA) are employed. However, these methods have been criticized for their use of gene sampling in lieu of patient sampling to generate p-values, and for their use of competitive null hypotheses in lieu of self-contained null hypotheses, which have shown to be less powerful (due to their less restrictive nature) in comparison (Goeman & Bulhmann, 2007). 
 

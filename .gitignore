@@ -17,7 +17,6 @@
 # DS Store
 .DS_Store
 
-
 # Log Files
 logfile*.txt
 
@@ -26,6 +25,9 @@ packrat.lock
 
 # Bak files
 *.bak
+
+# dotenv
+.env
 
 #dockerfile dependencies
 shiny_logs/*

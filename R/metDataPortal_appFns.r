@@ -65,7 +65,7 @@ getPatientReport = function(input, all_data) {
 #' @return igraph object of pathway
 #' @export
 #'
-getPathwayIgraph = function(input = NULL, Pathway.Name=NULL, pmap.path="../inst/extdata/RData"  ) {
+getPathwayIgraph = function(input = NULL, Pathway.Name=NULL, pmap.path="../inst/extdata"  ) {
   
   if (is.null(Pathway.Name)) {
     Pathway.Name = gsub(" ", "-", input$pathwayMapId) 
@@ -73,11 +73,11 @@ getPathwayIgraph = function(input = NULL, Pathway.Name=NULL, pmap.path="../inst/
 
 
   if (Pathway.Name=="All") {
-    load(sprintf("%s/allPathways2.RData", pmap.path))
+    load(sprintf("%s/RData/allPathways2.RData", pmap.path))
     V(ig)$label[which(V(ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
     Pathway.Name = "allPathways"
   } else {
-    load(sprintf("%s/%s.RData", pmap.path, Pathway.Name))
+    load(sprintf("%s/RData/%s.RData", pmap.path, Pathway.Name))
   }
   template.ig = ig
   

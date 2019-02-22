@@ -19,7 +19,7 @@ To quantify perturbations observed in pathway knowledgebases, popular set-based 
 While various tools currently exist for metabolomics data analysis and pathway analysis (e.g., Metabolomics Workbench, PhenoMeNal and Metaboanalyst, Metscape, Mummichog, MetaMapp, and MetDisease), there are many shortcomings to these existing web tools. Some of these platforms employ popular machine learning models to analyze metabolomics data: unsupervised dimensionality reduction methods to view outliers or batch effects, and clustering methods to look for differences between cases and controls. Existing tools are not tailored for single patient analysis (i.e., N-of-1), such as in clinical testing metabolomics, and are more helpful for case-control cohort design data collection methods.
 
 # Enter, topological enrichment methods!
-Topological enrichment methods (good review papers found in Braun & Shah, 2005 and Ihnatova, Popovici & Budinska, 2018) have shown to be more sensitive than set-based enrichment analysis methods.
+Topological enrichment methods (good review papers found in Braun & Shah, 2014 and Ihnatova, Popovici & Budinska, 2018) have shown to be more sensitive than set-based enrichment analysis methods.
 
 <img src=papers/Ihnatova-Popovici-Budinska_2018.png align="center">
 
@@ -32,10 +32,10 @@ We have examined several R package implementation of existing topological enrich
 
 
 Features:
-1. Datasets included from published papers including clinical subjects with metabolic diseases.
-2. Pathway visualization software and statistical interpretation metrics.
-3. New topology-based pathway enrichment analysis methods.
-4. Private data upload portal to use above tools on private datasets.
+1. Datasets included from published papers including clinical subjects with metabolic diseases (Miller, et al, 2015, Wangler, et al, 2017).
+2. Pathway visualization software, importing pathway knowledge curated by Metabolon's Metabolync Cytoscape plugin.
+3. New topology-based pathway enrichment analysis methods implemented for intepretation of clinical testing metabolomics data.
+4. TO COME:: Private data upload portal to use above tools on private datasets and pathway knowledgebases.
 
 ## Installation
 - Dependencies:

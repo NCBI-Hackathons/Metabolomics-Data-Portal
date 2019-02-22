@@ -1,7 +1,7 @@
 
 
 #' Get Patient Report
-#' @param PatientID - The patient identifier string associated with the patient's profile. 
+#' @param input - The patient identifier string associated with the patient's profile. 
 #' @param all_data - The entire data matrix loaded based on the diagnosis selected in the dropdown menu input$diagClass.
 #'
 #' @return patientReport - a data table with the metabolites and z-scores associated with the selected patient ID.
@@ -55,21 +55,29 @@ getPatientReport = function(input, all_data) {
 
 #' getPathwayIgraph
 #'
-#' @param Pathway.Name - The name of the pathway map for which you want the topological information.
+#' @param input optional; shiny input patient info
+#' @param Pathway.Name - optional; The name of the pathway map for which you want the topological 
+#' information.
+#' @param pmap.path  path to directory containing igraph objects of individual pathways
 #'
-#' @return
+#' @details Either input or Pathway.Name should be specified.
+#' 
+#' @return igraph object of pathway
 #' @export
 #'
-#' @examples
-getPathwayIgraph = function(input, Pathway.Name) {
-  Pathway.Name = gsub(" ", "-", input$pathwayMapId)
-  pmap.path = "../inst/extdata"
+getPathwayIgraph = function(input = NULL, Pathway.Name=NULL, pmap.path="../inst/extdata/RData"  ) {
+  
+  if (is.null(Pathway.Name)) {
+    Pathway.Name = gsub(" ", "-", input$pathwayMapId) 
+  }
+
+
   if (Pathway.Name=="All") {
-    load(sprintf("%s/RData/allPathways2.RData", pmap.path))
+    load(sprintf("%s/allPathways2.RData", pmap.path))
     V(ig)$label[which(V(ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
     Pathway.Name = "allPathways"
   } else {
-    load(sprintf("%s/RData/%s.RData", pmap.path, Pathway.Name))
+    load(sprintf("%s/%s.RData", pmap.path, Pathway.Name))
   }
   template.ig = ig
   

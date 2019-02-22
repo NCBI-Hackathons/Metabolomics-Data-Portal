@@ -124,13 +124,13 @@ cepa.univariate_fix <- function(ig, z_vec, thresh = 1.96,
 
 ###
 #TEST IG #
-load("../inst/extdata/RData/Arginine-Metabolism.RData")
+# load("../inst/extdata/RData/Arginine-Metabolism.RData")
 #TEST DATA
-alldat <- fread("../data/Miller2015_Heparin.txt")
+# alldat <- fread("../data/Miller2015_Heparin.txt")
 #TEST Z SCORE VECTOR
-z_vec <- alldat$PAA101
-names(z_vec) <- alldat$V1
+# z_vec <- alldat$PAA101
+# names(z_vec) <- alldat$V1
 
-out_cepa <- cepa.univariate_fix(ig, z_vec,1)
+# out_cepa <- cepa.univariate_fix(ig, z_vec,1)
 
 

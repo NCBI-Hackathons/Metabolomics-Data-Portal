@@ -4,11 +4,11 @@ Metabolomics Data Portal R shiny application for the visualization and analysis 
 # Introduction:
 Metabolomics is a fast maturing field which has an intimate relationship to the phenotypes observed in the clinic and is easily actionable for prospective treatment regimens. 
 
-<img src=papers/Kennedy-et-al_2018.png width="250", align="center">
+<img src=papers/Kennedy-et-al_2018.png width="250" align="center">
 
 Within the field of metabolomics is the distinction between clinical research metabolomics, which follows a case-control cohort design; and clinical testing metabolomics which compares a single patient to a reference population.
 
-<img src=papers/Kennedy-et-al_2018_2.png width="500", align = "center">
+<img src=papers/Kennedy-et-al_2018_2.png width="500" align = "center">
 
 Differences in data collection percolate to differences in analysis needs. Currently, for N-of-1 clinical testing metabolomics, state of the art analysis methods rely on pathway enrichment methods.
 
@@ -71,6 +71,9 @@ docker build .
 ## References
 - J.J. Goeman, P. Buhlmann. Analyzing gene expression data in terms of gene sets: methodological issues. Bioinformatics, 2007, 23(8):980-987.
 - Miller MJ, Kennedy AD, Eckhart AD, Burrage LC, Wulff JE, Miller LA, et al. Untargeted metabolomic analysis for the clinical screening of inborn errors of metabolism. J Inherit Metab Dis. 2015;38:1029-39.
-- Wangler, et al, 2018.
-- Burrage, et al, 2019.
-- Ihnatova, Popovici, Budinska, 2018.
+- M.F. Wangler, L. Hubert, T.R. Donti, M.J. Ventura, M.J. Miller, N. Braverman, K. Gawron, M. Bose,
+A.B. Moser, R.O. Jones, W.B. Rizzo, V.R. Sutton, Q. Sun, A.D. Kennedy & S.H. Elsea. A metabolomic map of Zellweger spectrum disorders reveals novel disease biomarkers. Genetics in Medicine, 2018, 00. 
+-MetaboLync Pathway Visualizations software, version 1.1.2, Copyright 2014 Metabolon, Inc., Research Triangle Park, NC, USA
+- L.C. Burrage, L. Ashmore, B.M. Stroup, Q. Sun, M.J. Miller, S.C.S Nagamani, W. Craigen, F. Scaglia, V.R. Sutton, B. Graham, A.D. Kennedy, A. Milosavljevic, B.H. Lee,  S.H. Elsea. 2019. Untargeted Metabolomic Profiling Reveals Multiple Pathway Perturbations and New Clinical Biomarkers in Urea Cycle Disorders. 2019, Genetics in Medicine. 
+- I. Ihnatova, V. Popovici & E. Budinska. A critical comparison of topology-based pathway analysis methods. PLOS One, 2018, 13(1): e0191154.
+- R. Braun, S. Shah. Network Methods for Pathway Analysis of Genomic Data. arXiv, 2014, 1411.1993vl.

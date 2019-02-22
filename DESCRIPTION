@@ -6,8 +6,7 @@ Authors@R: c(
 	person("Poorani", "Subramanian", email="pooranims@gmail.com", role=c("aut")),
 	person("Gautham", "Venugopalan", email="gautham@gryphonscientific.com", role=c("aut")),
 	person("Your", "Name", email="emailaddy@institution.edu", role=c("aut")),
-	person("Your", "Name", email="emailaddy@institution.edu", role=c("aut")),
-)
+	person("Your", "Name", email="emailaddy@institution.edu", role=c("aut")))
 Description: R shiny application for the visualization and analysis of untargeted metabolomics datasets.
 Depends: R (>= 3.5.0)
 Imports:    

@@ -64,7 +64,7 @@ weight_z_central <- function(ig, z_vec, thresh = 1, cen = "equal.weight"){
 #'
 #' @examples
 #' cepa.univariate_fix(ig, z_vec)
-cepa.univariate_fix <- function(ig, z_vec, thresh = 1.96,
+cepa.univariate_metab <- function(ig, z_vec, thresh = 1.96,
   plevel = "mean",
   cen = "equal.weight",
   cen.name = if(is.function(cen)) deparse(substitute(cen)) else if(mode(cen) == "name") deparse(cen),
@@ -122,15 +122,46 @@ cepa.univariate_fix <- function(ig, z_vec, thresh = 1.96,
 }
 
 
-###
-#TEST IG #
-# load("../inst/extdata/RData/Arginine-Metabolism.RData")
-#TEST DATA
-# alldat <- fread("../data/Miller2015_Heparin.txt")
-#TEST Z SCORE VECTOR
-# z_vec <- alldat$PAA101
-# names(z_vec) <- alldat$V1
 
-# out_cepa <- cepa.univariate_fix(ig, z_vec,1)
+init_cepa_allresults <- function(pathway.name, cen.name){
+  n.pathway = length(pathway.name)
+  
+  pathway.result = list()
+  length(pathway.result) = n.pathway
+  # pathway.result is like a two layer list
+  pathway.result = lapply(pathway.result, function(x) {
+    y = list()
+    length(y) = length(cen.name)
+    names(y) = cen.name
+    return(y)
+  })
+  names(pathway.result) = pathway.name
+  pathway.result
+}
 
-
+cepa.univariate.metab.all <- function(z_vec, pmap.path, pathway.name, cen = "betweenness",
+  cen.name = sapply(cen, function(x) ifelse(mode(x) == "name", deparse(x), x)), 
+  iter = 1000) {
+  
+  if(length(cen) < 1) stop("cen argument must be specified.\n")
+  for(ce in cen) {
+    if(is.function(ce)) stop("Functions cannot be used directly because we need the function name, use quote or substitute.\n")
+  }
+  
+  cat("Calculating pathway scores...\n")
+  pathway.result <- init_cepa_allresults(pathway.name, cen.name)
+  n.pathway <- length(pathway.name)
+  
+  for(i in seq_along(pathway.name)) {
+    cat("    ", i, "/", n.pathway, ", ", pathway.name[i], "...\n", sep="")
+    pathway = getPathwayIgraph(Pathway.Name=pathway.name[i], pmap.path=pmap.path)
+    
+    for(j in seq_along(cen)) {
+      pathway.result[[i]][[j]] = cepa.univariate_metab(z_vec, pathway, 
+        thresh, plevel, cen = cen[j], cen.name = cen.name[j], iter = iter)
+      
+      cat("      - ", cen[j], ": ", round(pathway.result[[i]][[j]]$p.value, 3), "\n", sep = "")
+    }
+    
+  }
+}

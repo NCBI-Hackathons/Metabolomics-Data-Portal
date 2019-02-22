@@ -41,7 +41,7 @@ getPathwayMap = function(input, zscore.data) {
     
     node.labels = V(template.ig)$label
     node.types = V(template.ig)$shape
-    pmap.path = "./inst/extdata"
+    pmap.path = "./extdata"
     load(sprintf("%s/complexNodes.RData", pmap.path))
     nms = node.labels[which(node.labels %in% names(patient.zscore))]
     patient.zscore = patient.zscore[which(names(patient.zscore) %in% nms)]

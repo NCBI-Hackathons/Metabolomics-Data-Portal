@@ -17,7 +17,7 @@
 #' ig = getPathwayIgraph(input, Miller2015_Heparin)
 #' # Returns a blank template for selected pathway.
 #' plot.igraph(ig, edge.arrow.size = 0.01)
-getPathwayIgraph = function(input, Pathway.Name, pmap.path = "./inst/extdata") {
+getPathwayIgraph = function(input, Pathway.Name, pmap.path = "./extdata") {
   if (is.null( Pathway.Name)) Pathway.Name = gsub(" ", "-", input$pathwayMapId)
 
   if (Pathway.Name=="All") {

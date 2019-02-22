@@ -21,8 +21,12 @@ shiny.get.cepa <- function(z_vec, pathway.name = NULL, pmap.path="extdata", type
   iter = 1000){
   
   if(type == "ora"){
-    cepa.ora.metab.all(names(z_vec[abs(z_vec) > thresh]), names(z_vec), pmap.path, pathway.name, cen, cen.name, iter)
+    z_vec <- z_vec[!is.na(z_vec)]
+    cepa.result.all <- cepa.ora.metab.all(names(z_vec[abs(z_vec) > thresh]), names(z_vec), pmap.path, pathway.name, cen, cen.name, iter)
   }else{
-    cepa.univariate.metab.all(z_vec, pmap.path, pathway.name, cen, cen.name, iter)
+    cepa.result.all <- cepa.univariate.metab.all(z_vec, pmap.path, pathway.name, cen, cen.name, iter)
   }
+  
+  return(data.frame(pathway=names(cepa.result.all), p.value=sapply(cepa.result.all, function(x) x[[1]]$p.value)))
+  
 }

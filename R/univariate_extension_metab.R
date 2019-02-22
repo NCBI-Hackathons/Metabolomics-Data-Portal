@@ -28,7 +28,7 @@ align_z_ig <- function(ig, z_vec){
 #' 
 weight_z_central <- function(ig, z_vec, thresh = 1, cen = "equal.weight"){
   #get weights
-  weight = CePa:::centrality(pathway, cen)
+  weight = CePa:::centrality(ig, cen)
   #fix non-zero weights ? huh
   add = 0
   if(sum(weight == 0) != length(weight)) {
@@ -65,7 +65,6 @@ weight_z_central <- function(ig, z_vec, thresh = 1, cen = "equal.weight"){
 #' @examples
 #' cepa.univariate_fix(ig, z_vec)
 cepa.univariate_metab <- function(ig, z_vec, thresh = 1.96,
-  plevel = "mean",
   cen = "equal.weight",
   cen.name = if(is.function(cen)) deparse(substitute(cen)) else if(mode(cen) == "name") deparse(cen),
   iter = 1000){
@@ -86,7 +85,7 @@ cepa.univariate_metab <- function(ig, z_vec, thresh = 1.96,
     
     ds = quantile(wz, c(1, 0.75, 0.5, 0))
     names(ds) = c("max", "q75", "median", "min")
-    s = plevelFun(wz)
+    s = mean(wz)
     
     for(i in 1:iter) {
       new_z <- sample(z_al, length(z_th)) #resample z-scores
@@ -94,13 +93,15 @@ cepa.univariate_metab <- function(ig, z_vec, thresh = 1.96,
       
       #calculate weights
       new_wz <- weight_z_central(ig, new_z, 1)
-      s.random[i] = plevelFun(new_wz)
+      s.random[i] = mean(new_wz)
       ds.random[i, ] = quantile(new_wz, c(1, 0.75, 0.5, 0))
     }
     p.value = (sum(s.random >= s) + 1) / (iter + 1)  
   }else{
     p.value = NA
-
+    s = NA
+    ds = NA
+    wz = NA
   }
   
   res = list("score" = s,                                  # pathway score
@@ -113,7 +114,7 @@ cepa.univariate_metab <- function(ig, z_vec, thresh = 1.96,
     "node.level.t.value" = z_al ,    # value for each node, exclude the centrality part
     "node.level" = z_al,                    # value for each node, exclude the centrality part
     "node.name" = names(z_al),                      # node names
-    "pathway" = pathway,                          # pathway in igraph format
+    "pathway" = ig,                          # pathway in igraph format
     "framework" = "gsa.univariate")                          
   
   class(res) = "cepa"
@@ -141,7 +142,7 @@ init_cepa_allresults <- function(pathway.name, cen.name){
 
 cepa.univariate.metab.all <- function(z_vec, pmap.path, pathway.name, cen = "betweenness",
   cen.name = sapply(cen, function(x) ifelse(mode(x) == "name", deparse(x), x)), 
-  iter = 1000) {
+  iter = 1000,thresh=1.96) {
   
   if(length(cen) < 1) stop("cen argument must be specified.\n")
   for(ce in cen) {
@@ -157,7 +158,7 @@ cepa.univariate.metab.all <- function(z_vec, pmap.path, pathway.name, cen = "bet
     pathway = getPathwayIgraph(Pathway.Name=pathway.name[i], pmap.path=pmap.path)
     
     for(j in seq_along(cen)) {
-      pathway.result[[i]][[j]] = cepa.univariate_metab(z_vec, pathway, 
+      pathway.result[[i]][[j]] = cepa.univariate_metab(pathway, z_vec, 
         thresh, plevel, cen = cen[j], cen.name = cen.name[j], iter = iter)
       
       cat("      - ", cen[j], ": ", round(pathway.result[[i]][[j]]$p.value, 3), "\n", sep = "")

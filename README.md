@@ -4,7 +4,7 @@ Metabolomics Data Portal R shiny application for the visualization and analysis 
 # Introduction:
 Metabolomics is a fast maturing field which has an intimate relationship to the phenotypes observed in the clinic and is easily actionable for prospective treatment regimens. 
 
-![Metabolomics](papers/Kennedy-et-al_2018.png){:height="50%" width="50%"}
+![Metabolomics](https://github.com/NCBI-Hackathons/Metabolomics-Data-Portal/blob/master/papers/Burrage-et-al_2019.png | width=100)
 
 Within the field of metabolomics is the distinction between clinical research metabolomics, which follows a case-control cohort design; and clinical testing metabolomics which compares a single patient to a reference population.
 

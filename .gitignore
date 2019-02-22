@@ -26,3 +26,7 @@ packrat.lock
 
 # Bak files
 *.bak
+
+#dockerfile dependencies
+shiny_logs/*
+

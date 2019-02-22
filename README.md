@@ -15,8 +15,19 @@ remotes::install_github("NCBI-Hackathons/Metabolomics-Data-Portal")
 ```
 
 ## Usage
-
-
+- Configure the docker-compose.yml file to point to your apps
+- To spin up the shiny server, use the docker compose file from the command line:
+```bash
+docker-compose up -d
+```
+- To shut down the shiny server, use:
+```bash
+docker-compose down
+```
+- The dockerfile can also be built on your own:
+```bash
+docker build .
+```
 ## Data formats
 - Input data
   - tabular data with rows as metabolites and columns as samples; data should be transformed Z-scores
@@ -28,5 +39,3 @@ remotes::install_github("NCBI-Hackathons/Metabolomics-Data-Portal")
 
 
 ## References
-
-

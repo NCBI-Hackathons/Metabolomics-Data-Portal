@@ -33,7 +33,7 @@ services:
       # going to localhost:3838 in one's web browser will show a "Welcome to
       # Shiny Server!" diagnostics page.
       # Change the mountpoints path before the colon to your local path
-      # - './mountpoints/apps:/srv/shiny-server'
+      - './R:/srv/shiny-server'
 
 volumes:
   shiny_logs:

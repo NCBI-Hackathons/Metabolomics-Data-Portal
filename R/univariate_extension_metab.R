@@ -53,7 +53,6 @@ weight_z_central <- function(ig, z_vec, thresh = 1, cen = "equal.weight"){
 #' @param ig The pathway igraph
 #' @param z_vec The named vector of metabolites z-scores 
 #' @param thresh The z-score threshold
-#' @param plevel The function used to summarize weighted z-scores (mean by default)
 #' @param cen The centrality parameter (equal.weights by default)
 #' @param cen.name
 #' @param iter The number of iterations
@@ -159,10 +158,12 @@ cepa.univariate.metab.all <- function(z_vec, pmap.path, pathway.name, cen = "bet
     
     for(j in seq_along(cen)) {
       pathway.result[[i]][[j]] = cepa.univariate_metab(pathway, z_vec, 
-        thresh, plevel, cen = cen[j], cen.name = cen.name[j], iter = iter)
+        thresh, cen = cen[j], cen.name = cen.name[j], iter = iter)
       
       cat("      - ", cen[j], ": ", round(pathway.result[[i]][[j]]$p.value, 3), "\n", sep = "")
     }
     
   }
+  class(pathway.result) = "cepa.all"
+  return(pathway.result)
 }

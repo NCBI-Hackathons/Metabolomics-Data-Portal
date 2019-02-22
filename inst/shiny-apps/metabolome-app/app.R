@@ -7,6 +7,23 @@ require(grid)
 require(MetabolomicsDataPortal)
 require(Hmisc)
 
+pathchoices =  c("All", "Arginine-Metabolism", "Ascorbate-Metabolism", "Asp-Glu-Metabolism", 
+  "BCAA-Metabolism", "Benzoate-Metabolism", "Beta-Oxidation", "Bile-Acid-Metabolism", 
+  "Carnitine-Biosynthesis", "Cholesterol-Synthesis", "Creatine-Metabolism", 
+  "DicarboxylicAcid-Metabolism", "Eicosanoids", "Endocannabinoid-Synthesis", 
+  "FattyAcid-Metabolism", "Fibrinogen-Cleavage-Peptides", "GABA-Shunt", 
+  "Galactose-Metabolism", "Glutathione-Metabolism", "Gly-Ser-Thr-Metabolism", 
+  "Glycogen-Metabolism", "Glycolysis", "Glycosylation", "Hemoglobin-Porphyrin-Metabolism", 
+  "Histidine-Metabolism", "Inositol-Metabolism", "Ketone-Bodies", 
+  "Lysine-Catabolism", "Met-Cys-Metabolism", "Mevalonate-Metabolism", 
+  "Nicotinate-Nicotinamide-Metabolism", "Pantothenate-Metabolism", 
+  "Pentose-Phosphate-Metabolism", "Phe-Tyr-Metabolism", "Phospholipid-Metabolism", 
+  "Polyamine-Metabolism", "Proline-Metabolism", "Protein-Degradation", 
+  "Purine-Metabolism", "Pyridoxal-Metabolism", "Pyrimidine-Metabolism", 
+  "Riboflavin-Metabolism", "Secondary-Bile-Acids", "Sorbitol-Glycerol-Metabolism", 
+  "Sphingolipid-Metabolism", "Steroid-Hormone-Biosynthesis", "TCA-Cycle", 
+  "Thyroid-Hormone-Synthesis", "Tryptophan-Metabolism")
+
 # Make sure you are in the current directory of your local installation of the MetDataPortal package
 pkgdir <- find.package("MetabolomicsDataPortal")
 miller_data = readRDS(file.path(pkgdir, "data/Miller2015_Heparin.rds"))
@@ -75,22 +92,7 @@ ui = dashboardPage(
                           fluidRow(box(title="Pathway Map", status="primary", solidHeader = TRUE,
                                        splitLayout(cellWidths=c("33%", "33%", "33%"),
                                                    selectInput(inputId = "pathwayMapId", label = "Pathway Map", 
-                                                               choices =  c("All", "Arginine-Metabolism", "Ascorbate-Metabolism", "Asp-Glu-Metabolism", 
-                                                                            "BCAA-Metabolism", "Benzoate-Metabolism", "Beta-Oxidation", "Bile-Acid-Metabolism", 
-                                                                            "Carnitine-Biosynthesis", "Cholesterol-Synthesis", "Creatine-Metabolism", 
-                                                                            "DicarboxylicAcid-Metabolism", "Eicosanoids", "Endocannabinoid-Synthesis", 
-                                                                            "FattyAcid-Metabolism", "Fibrinogen-Cleavage-Peptides", "GABA-Shunt", 
-                                                                            "Galactose-Metabolism", "Glutathione-Metabolism", "Gly-Ser-Thr-Metabolism", 
-                                                                            "Glycogen-Metabolism", "Glycolysis", "Glycosylation", "Hemoglobin-Porphyrin-Metabolism", 
-                                                                            "Histidine-Metabolism", "Inositol-Metabolism", "Ketone-Bodies", 
-                                                                            "Lysine-Catabolism", "Met-Cys-Metabolism", "Mevalonate-Metabolism", 
-                                                                            "Nicotinate-Nicotinamide-Metabolism", "Pantothenate-Metabolism", 
-                                                                            "Pentose-Phosphate-Metabolism", "Phe-Tyr-Metabolism", "Phospholipid-Metabolism", 
-                                                                            "Polyamine-Metabolism", "Proline-Metabolism", "Protein-Degradation", 
-                                                                            "Purine-Metabolism", "Pyridoxal-Metabolism", "Pyrimidine-Metabolism", 
-                                                                            "Riboflavin-Metabolism", "Secondary-Bile-Acids", "Sorbitol-Glycerol-Metabolism", 
-                                                                            "Sphingolipid-Metabolism", "Steroid-Hormone-Biosynthesis", "TCA-Cycle", 
-                                                                            "Thyroid-Hormone-Synthesis", "Tryptophan-Metabolism"),
+                                                               choices = pathchoices,
                                                                selected="Arginine-Metabolism"),
                                                    sliderInput(inputId = "scalingFactor", label="Node Scaling Factor", min=1, max=5, step=1, value=1),
                                                    plotOutput("colorbar")),
@@ -141,7 +143,7 @@ server = function(input, output, session) {
             nms = d[,1]
             vec = d[,2]
             names(vec) = nms
-            return (shiny.get.cepa(z_vec=vec, pathway.name=input$pathwayMapId, pmap.path=file.path(pkgdir, "extdata")))
+            return (shiny.get.cepa(z_vec=vec, pathway.name=pathchoices, pmap.path=file.path(pkgdir, "extdata"), iter = 100))
           })
         #output$spia = renderTable(getSPIA(input))
         

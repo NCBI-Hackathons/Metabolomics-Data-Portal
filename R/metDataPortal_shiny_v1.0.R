@@ -8,6 +8,7 @@ require(igraph)
 # Make sure you are in the current directory of your local installation of the MetDataPortal package
 setwd("~/Downloads/Metabolomics-Data-Portal/R/")
 source("metDataPortal_appFns.r")
+
 miller_data = readRDS("Miller2015_Heparin.rds")
 miller_data = miller_data[,-which(colnames(miller_data) %in% c("FillRate", "Mean.NormPop", "STD.NormPop"))]
 print(colnames(miller_data))
@@ -76,9 +77,9 @@ ui = dashboardPage(
                                                    selectInput(inputId = "pathwayMapId", label = "Pathway Map", 
                                                                choices = c("All", "Arginine Metabolism", "Ascorbate Metabolism", "Asp-Glu Metabolism", 
                                                                            "BCAA Metabolism", "Benzoate Metabolism", "Beta-Oxidation", "Bile-Acid Metabolism", 
-                                                                           "Carnitine Biosynthesis", "Cholesterol Synthesis", "Creatine Metabolism", "Dicoarboxylic Acid Metabolism",
-                                                                           "Eicosanoids", "Endocannabinoid Synthesis", "Fatty Acid Metabolism", "Fibrinogen Cleavage Peptides",
-                                                                           "GABA Shunt", "Galactose Metabolism", "Glutathione Metabolism", "Gly-Ser-Thr Metabaolism", "Glycogen Metabolism",
+                                                                           "Carnitine Biosynthesis", "Cholesterol Synthesis", "Creatine Metabolism", "DicarboxylicAcid Metabolism",
+                                                                           "Eicosanoids", "Endocannabinoid Synthesis", "FattyAcid Metabolism", "Fibrinogen Cleavage Peptides",
+                                                                           "GABA Shunt", "Galactose Metabolism", "Glutathione Metabolism", "Gly-Ser-Thr Metabolism", "Glycogen Metabolism",
                                                                            "Glycolysis", "Glycosylation", "Hemoglobin-Porphyrin Metabolism", "Histidine Metabolism", "Inositol Metabolism",
                                                                            "Ketone Bodies", "Lysine Catabolism", "Met-Cys Metabolism", "Mevalonate Metabolism", "Nicotinate-Nicotinamide Metabolism",
                                                                            "Pantothenate Metabolism", "Pentose-Phosphate Metabolism", "Phe-Tyr Metabolism", "Phospholipid Metabolism", "Polyamine Metabolism",

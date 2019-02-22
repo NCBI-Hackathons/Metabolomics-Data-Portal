@@ -7,8 +7,6 @@ require(grid)
 require(MetabolomicsDataPortal)
 require(Hmisc)
 
-<<<<<<< HEAD
-
 tryCatch( 
   {
     setwd(Sys.getenv("METAROOT"))

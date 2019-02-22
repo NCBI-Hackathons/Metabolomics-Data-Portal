@@ -5,6 +5,7 @@ require(ggplot2)
 require(igraph)
 require(grid)
 require(MetabolomicsDataPortal)
+require(Hmisc)
 
 # Make sure you are in the current directory of your local installation of the MetDataPortal package
 setwd(find.package("MetabolomicsDataPortal"))

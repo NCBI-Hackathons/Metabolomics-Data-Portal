@@ -6,6 +6,7 @@
 # Example code in package build process
 *-Ex.R
 .Rproj.user
+*.Rproj
 
 # ShinyApps manifest
 *.dcf
@@ -27,3 +28,7 @@ packrat.lock
 
 # Bak files
 *.bak
+
+#dockerfile dependencies
+shiny_logs/*
+

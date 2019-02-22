@@ -5,7 +5,8 @@
 
 FROM rocker/shiny:3.5.2
 
-RUN R -e "install.packages(c('DT','shinydashboard','ggplot2','igraph'))"
+RUN R -e "install.packages(c('data.table','DT','ggplot2','grid','Hmisc','igraph','remotes','shiny','shinydashboard'))"
+RUN R -e "remotes::install_github('NCBI-Hackathons/Metabolomics-Data-Portal')"
 
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 ENV LC_ALL en_US.UTF-8

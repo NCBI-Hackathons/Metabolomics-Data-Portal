@@ -57,6 +57,7 @@ remotes::install_github("NCBI-Hackathons/Metabolomics-Data-Portal")
 
 
 ## Example Shiny Site
+- The docker image used is gautham1/shiny-metabolomics:3.5.2, available on [Docker Hub](https://cloud.docker.com/u/gautham1/repository/docker/gautham1/shiny-metabolomics).
 - Configure the docker-compose.yml file to point to your apps
 - To spin up the shiny server, use the docker compose file from the command line:
 ```bash

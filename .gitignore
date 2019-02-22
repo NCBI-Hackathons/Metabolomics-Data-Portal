@@ -29,6 +29,9 @@ packrat.lock
 # Bak files
 *.bak
 
+# dotenv
+.env
+
 #dockerfile dependencies
 shiny_logs/*
 

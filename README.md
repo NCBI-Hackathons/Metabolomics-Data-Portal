@@ -1,6 +1,17 @@
 # Metabolomics-Data-Portal
 Metabolomics Data Portal R shiny application for the visualization and analysis of untargeted metabolomics datasets.
 
+Motivation:
+
+![Introduction](papers/Kennedy-et-al_2018.png)
+![Introduction](papers/Kennedy-et-al_2018_2.png)
+
+![Introduction](papers/Burrage-et-al_2019.png)
+
+
+![Existing Topological Enrichment Methods](papers/Ihnatova-Popovici-Budinska_2018.png)
+
+
 Features:
 1. Datasets included from published papers including clinical subjects with metabolic diseases.
 2. Pathway visualization software and statistical interpretation metrics.

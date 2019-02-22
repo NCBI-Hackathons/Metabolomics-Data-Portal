@@ -7,17 +7,9 @@ require(grid)
 require(MetabolomicsDataPortal)
 require(Hmisc)
 
-tryCatch( 
-  {
-    setwd(Sys.getenv("METAROOT"))
-    print("Set root directory from environment")
-  },
-  error=function(cond) {
-    setwd(find.package("MetabolomicsDataPortal"))
-    print("Set root directory as package home")
-  }
-)
-miller_data = readRDS("data/Miller2015_Heparin.rds")
+# Make sure you are in the current directory of your local installation of the MetDataPortal package
+pkgdir <- find.package("MetabolomicsDataPortal")
+miller_data = readRDS(file.path(pkgdir, "data/Miller2015_Heparin.rds"))
 miller_data = miller_data[,-which(colnames(miller_data) %in% c("FillRate", "Mean.NormPop", "STD.NormPop"))]
 print(colnames(miller_data))
 print(dim(miller_data))

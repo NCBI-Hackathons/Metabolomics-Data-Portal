@@ -1,0 +1,39 @@
+# DESCRIPTION: Example shiny server docker compose file
+# AUTHORS: NIH Metabolomics Data Portal Hackathon Team
+# TO RUN: docker-compose up -d'
+# TO HALT: docker-compose down  
+version: "3.0"
+
+services:
+  shiny:
+    container_name: shiny
+    # To build the image locally, comment out "image" below, and uncomment
+    # "build" and the lines indented under it.
+    image: gautham1/shiny-metabolomics:3.5.2
+    # build:
+      # context: .
+      # dockerfile: Dockerfile
+    restart: always
+    # According to the documentation, the following comments on 'root' apply. 
+    # But the modified Dockerfile changes folder permissions so it might not actually be a problem. 
+    # Better to not run as root if avoidable.
+    # Setting this to something other than 'root' will cause shiny apps not to
+    # run on the localhost:3838 "Welcome to Shiny" diagnostics page mentioned
+    # below.
+    user: 'shiny'
+    # Uncomment the lines below to disable application logs STDOUT output
+    # environment:
+    #   - APPLICATION_LOGS_TO_STDOUT=false
+    ports:
+    # change to 80:3838 if you want it to run directly on the browser when you navigate to localhost without a port. That may conflict with other things though.
+      - '3838:3838'  
+    volumes:
+      - 'shiny_logs:/var/log/shiny-server'
+      # Comment the line below out for initial testing. With it commented out,
+      # going to localhost:3838 in one's web browser will show a "Welcome to
+      # Shiny Server!" diagnostics page.
+      # Change the mountpoints path before the colon to your local path
+      - './R:/srv/shiny-server'
+
+volumes:
+  shiny_logs:

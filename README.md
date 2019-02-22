@@ -69,11 +69,12 @@ docker build .
 ```
 
 ## References
-- J.J. Goeman, P. Buhlmann. Analyzing gene expression data in terms of gene sets: methodological issues. Bioinformatics, 2007, 23(8):980-987.
-- Miller MJ, Kennedy AD, Eckhart AD, Burrage LC, Wulff JE, Miller LA, et al. Untargeted metabolomic analysis for the clinical screening of inborn errors of metabolism. J Inherit Metab Dis. 2015;38:1029-39.
+- M.J. Miller, A.D. Kennedy, A.D. Eckhart, L.C. Burrage, J.E. Wulff, L.A. Miller, M.V. Milburn, J.A. Ryals,
+A.L. Beaudet, Q. Sun, V.R. Sutton & S.H. Elsea. Untargeted metabolomic analysis for the clinical screening of inborn errors of metabolism. J Inherit Metab Dis. 2015;38:1029-39.
 - M.F. Wangler, L. Hubert, T.R. Donti, M.J. Ventura, M.J. Miller, N. Braverman, K. Gawron, M. Bose,
 A.B. Moser, R.O. Jones, W.B. Rizzo, V.R. Sutton, Q. Sun, A.D. Kennedy & S.H. Elsea. A metabolomic map of Zellweger spectrum disorders reveals novel disease biomarkers. Genetics in Medicine, 2018, 00. 
 -MetaboLync Pathway Visualizations software, version 1.1.2, Copyright 2014 Metabolon, Inc., Research Triangle Park, NC, USA
 - L.C. Burrage, L. Ashmore, B.M. Stroup, Q. Sun, M.J. Miller, S.C.S Nagamani, W. Craigen, F. Scaglia, V.R. Sutton, B. Graham, A.D. Kennedy, A. Milosavljevic, B.H. Lee,  S.H. Elsea. 2019. Untargeted Metabolomic Profiling Reveals Multiple Pathway Perturbations and New Clinical Biomarkers in Urea Cycle Disorders. 2019, Genetics in Medicine. 
+- J.J. Goeman, P. Buhlmann. Analyzing gene expression data in terms of gene sets: methodological issues. Bioinformatics, 2007, 23(8):980-987.
 - I. Ihnatova, V. Popovici & E. Budinska. A critical comparison of topology-based pathway analysis methods. PLOS One, 2018, 13(1): e0191154.
 - R. Braun, S. Shah. Network Methods for Pathway Analysis of Genomic Data. arXiv, 2014, 1411.1993vl.

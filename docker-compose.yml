@@ -24,8 +24,6 @@ services:
     # Uncomment the lines below to disable application logs STDOUT output
     # environment:
     #   - APPLICATION_LOGS_TO_STDOUT=false
-    environment:
-      - METAROOT='/usr/local/repo'
     ports:
     # change to 80:3838 if you want it to run directly on the browser when you navigate to localhost without a port. That may conflict with other things though.
       - '3838:3838'  

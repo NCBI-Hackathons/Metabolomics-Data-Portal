@@ -3,6 +3,7 @@ require(DT)
 require(shinydashboard)
 require(ggplot2)
 require(igraph)
+require(Hmisc)
 
 
 # Make sure you are in the current directory of your local installation of the MetDataPortal package

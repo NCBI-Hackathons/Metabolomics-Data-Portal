@@ -25,3 +25,10 @@ packrat.lock
 
 # Bak files
 *.bak
+
+#dockerfile dependencies
+.directory
+mountpoints/apps/*
+!mountpoints/apps/index.html
+!mountpoints/apps/example-app
+

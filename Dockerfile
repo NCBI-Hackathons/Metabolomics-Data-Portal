@@ -3,33 +3,25 @@
 # DESCRIPTION: Shiny container with packages needed to perform metabaolmics analysis and visualziation
 # BUILD: docker build --rm -t gautham1/shiny-metabolomics:3.5.2 .
 
-FROM rocker/r-ver:3.5.2
+FROM rocker/shiny:3.5.2
 
-RUN apt-get update
-RUN apt-get install -y \
-    sudo \
-    gdebi-core \
-    pandoc \
-    pandoc-citeproc \
-    libcurl4-gnutls-dev \
-    libcairo2-dev \
-    libxt-dev \
-    wget
+RUN R -e "install.packages(c('DT','shinydashboard','ggplot2','igraph'))"
 
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+RUN mkdir -p /var/lib/shiny-server/bookmarks && \
+  chown shiny:0 /var/lib/shiny-server/bookmarks && \
+  chmod g+wrX /var/lib/shiny-server/bookmarks && \
+  mkdir -p /var/log/shiny-server && \
+  chown shiny:0 /var/log/shiny-server && \
+  chmod g+wrX /var/log/shiny-server
 
-# Download and install shiny server
-RUN wget --no-verbose https://download3.rstudio.org/ubuntu-14.04/x86_64/VERSION -O "version.txt" && \
-    VERSION=$(cat version.txt)  && \
-    wget --no-verbose "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-$VERSION-amd64.deb" -O ss-latest.deb && \
-    gdebi -n ss-latest.deb && \
-    rm -f version.txt ss-latest.deb && \
-    . /etc/environment && \
-    R -e "install.packages(c('shiny', 'rmarkdown'), repos='$MRAN')" && \
-    R -e "install.packages(c('DT','shinydashboard','ggplot2','igraph'), repos='$MRAN')" && \
-    cp -R /usr/local/lib/R/site-library/shiny/examples/* /srv/shiny-server/
 
 EXPOSE 3838
 
 COPY shiny-server.sh /usr/bin/shiny-server.sh
+
+USER shiny
 
 CMD ["/usr/bin/shiny-server.sh"]

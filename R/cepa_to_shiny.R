@@ -1,5 +1,5 @@
 
-#' Title
+#' Cepa to shiny
 #'
 #' @param z_vec 
 #' @param pathway.name 

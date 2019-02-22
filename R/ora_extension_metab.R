@@ -206,6 +206,7 @@ cepa.ora.metab = function(dif, bk, pathway = NULL, cen = "equal.weight",
     # get node names formatted with genes
     node.name = mapping$node
     node <- mapping$node
+    weight <- mapping$weight
 
     member = character(0)
  

@@ -66,10 +66,10 @@ ui = dashboardPage(
                                        align="left", width=12)
                                    ),
                           fluidRow(box(title="Set-based Enrichment Analyses", status="info", solidHeader=TRUE, width=4, collapsible=TRUE#,
-                                       #tableOutput("setbased")
+                                       #tableOutput("msea")
                                       ), 
                                     box(title="Topological-based Enrichment Analyses", status="info", solidHeader=TRUE, width=8, collapsible=TRUE#,
-                                      #dataTableOutput("spia"), dataTableOutput("cepa")
+                                      dataTableOutput("cepa")
                                     )
                                   ),
                           fluidRow(box(title="Pathway Map", status="primary", solidHeader = TRUE,
@@ -130,7 +130,7 @@ server = function(input, output, session) {
           content = function(file) { write.table(report()$patientReport, file, sep="\t", col.names = TRUE, row.names = FALSE) }
         )
         #output$msea = renderTable(getMSEA(input))
-        #output$cepa = renderTable(getCePa(input))
+        output$cepa = renderTable(getcepa(input))
         #output$spia = renderTable(getSPIA(input))
         
         observeEvent(input$pathwayMapId, priority=0, {

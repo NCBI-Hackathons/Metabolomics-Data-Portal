@@ -14,7 +14,7 @@
 #' @export
 #'
 #' @examples
-get.cepa <- function(z_vec, pathway.name = NULL, pmap.path="extdata", type = "ora",  
+shiny.get.cepa <- function(z_vec, pathway.name = NULL, pmap.path="extdata", type = "ora",  
   thresh = 1.96, #required arguments
   cen = "betweenness", 
   cen.name = sapply(cen, function(x) ifelse(mode(x) == "name", deparse(x), x)), 

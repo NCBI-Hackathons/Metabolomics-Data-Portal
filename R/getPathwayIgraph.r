@@ -21,7 +21,7 @@ getPathwayIgraph = function(input, Pathway.Name, pmap.path = "./extdata") {
   if (is.null( Pathway.Name)) Pathway.Name = gsub(" ", "-", input$pathwayMapId)
 
   if (Pathway.Name=="All") {
-    load(sprintf("%s/RData/allPathways2.RData", pmap.path))
+    load(sprintf("%s/RData/allPathways.RData", pmap.path))
     V(ig)$label[which(V(ig)$label %in% c("DSGEGDFXAEGGGVR", "Dsgegdfxaegggvr"))] = ""
     Pathway.Name = "allPathways"
   } else {

@@ -17,3 +17,12 @@ patientReport - a data table with the metabolites and z-scores associated with t
 \description{
 Get Patient Report
 }
+\examples{
+data(Miller2015_Heparin)
+# Input is supplied by R shiny app, but you can hard code parameters as a list object, too, to test functionality.
+input = list()
+input$ptIDs = colnames(Miller2015_Heparin)[4]
+input$diagClass = "paa"
+rpt = getPatientReport(input, Miller2015_Heparin)
+head(rpt$patientReport)
+}

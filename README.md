@@ -4,15 +4,15 @@ Metabolomics Data Portal R shiny application for the visualization and analysis 
 # Introduction:
 Metabolomics is a fast maturing field which has an intimate relationship to the phenotypes observed in the clinic and is easily actionable for prospective treatment regimens. 
 
-<img src=papers/Kennedy-et-al_2018.png width="250">
+<img src=papers/Kennedy-et-al_2018.png width="250", align="center">
 
 Within the field of metabolomics is the distinction between clinical research metabolomics, which follows a case-control cohort design; and clinical testing metabolomics which compares a single patient to a reference population.
 
-<img src=papers/Kennedy-et-al_2018_2.png width="250">
+<img src=papers/Kennedy-et-al_2018_2.png width="500", align = "center">
 
 Differences in data collection percolate to differences in analysis needs. Currently, for N-of-1 clinical testing metabolomics, state of the art analysis methods rely on pathway enrichment methods.
 
-<img src=papers/Burrage-et-al_2019.png width="250">
+<img src=papers/Burrage-et-al_2019.png" align="center">
 
 To quantify perturbations observed in pathway knowledgebases, popular set-based methods such as over-representation analysis (ORA) and metabolite-set enrichment analysis (MSEA) are employed. However, these methods have been criticized for their use of gene sampling in lieu of patient sampling to generate p-values, and for their use of competitive null hypotheses in lieu of self-contained null hypotheses, which have shown to be less powerful (due to their less restrictive nature) in comparison (Goeman & Bulhmann, 2007). 
 
@@ -21,7 +21,7 @@ While various tools currently exist for metabolomics data analysis and pathway a
 # Enter, topological enrichment methods!
 Topological enrichment methods (good review papers found in Braun & Shah, 2005 and Ihnatova, Popovici & Budinska, 2018) have shown to be more sensitive than set-based enrichment analysis methods.
 
-<img src=papers/Ihnatova-Popovici-Budinska_2018.png width="250">
+<img src=papers/Ihnatova-Popovici-Budinska_2018.png align="center">
 
 # Problem
 Modern day topological enrichment methods are all narrowly implemented for the analysis/interpretation of differentially expressed *gene sets*, and do not extend their functionality to the analysis and interpretation of perturbed metabolite sets.
@@ -69,3 +69,8 @@ docker build .
 ```
 
 ## References
+- J.J. Goeman, P. Buhlmann. Analyzing gene expression data in terms of gene sets: methodological issues. Bioinformatics, 2007, 23(8):980-987.
+- Miller MJ, Kennedy AD, Eckhart AD, Burrage LC, Wulff JE, Miller LA, et al. Untargeted metabolomic analysis for the clinical screening of inborn errors of metabolism. J Inherit Metab Dis. 2015;38:1029-39.
+- Wangler, et al, 2018.
+- Burrage, et al, 2019.
+- Ihnatova, Popovici, Budinska, 2018.

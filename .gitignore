@@ -27,8 +27,5 @@ packrat.lock
 *.bak
 
 #dockerfile dependencies
-.directory
-mountpoints/apps/*
-!mountpoints/apps/index.html
-!mountpoints/apps/example-app
+shiny_logs/*
 

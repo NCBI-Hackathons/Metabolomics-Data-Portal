@@ -19,3 +19,17 @@ An SVG image of the selected pathway map in input$pathwayMapId, with the mean pr
 \description{
 Get Pathway Map: Generate pathway map with patient data superimposed.
 }
+\examples{
+data(Miller2015_Heparin)
+# Input is supplied by R shiny app, but you can hard code parameters as a list object, too, to test functionality.
+input = list()
+input$ptIDs = colnames(Miller2015_Heparin)[4]
+input$diagClass = "paa"
+input$pathwayMapId = "allPathways"
+input$scalingFactor = 1
+svg_img = getPathwayMap(input, Miller2015_Heparin)
+# SVG file will be saved at following path
+svg_img$src
+# Colorbar can be visualized this way
+plot(svg_img$colorbar)
+}

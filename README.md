@@ -4,24 +4,24 @@ Metabolomics Data Portal R shiny application for the visualization and analysis 
 # Introduction:
 Metabolomics is a fast maturing field which has an intimate relationship to the phenotypes observed in the clinic and is easily actionable for prospective treatment regimens. 
 
-![Metabolomics](papers/Kennedy-et-al_2018.png){:height="50%" width="50%"}
+<img src=papers/Kennedy-et-al_2018.png width="250" align="center">
 
 Within the field of metabolomics is the distinction between clinical research metabolomics, which follows a case-control cohort design; and clinical testing metabolomics which compares a single patient to a reference population.
 
-![Data Collection](papers/Kennedy-et-al_2018_2.png){:height="50%" width="50%"}
+<img src=papers/Kennedy-et-al_2018_2.png width="500" align = "center">
 
 Differences in data collection percolate to differences in analysis needs. Currently, for N-of-1 clinical testing metabolomics, state of the art analysis methods rely on pathway enrichment methods.
 
-![Introduction](papers/Burrage-et-al_2019.png){:height="50%" width="50%"}
+<img src=papers/Burrage-et-al_2019.png align="center">
 
 To quantify perturbations observed in pathway knowledgebases, popular set-based methods such as over-representation analysis (ORA) and metabolite-set enrichment analysis (MSEA) are employed. However, these methods have been criticized for their use of gene sampling in lieu of patient sampling to generate p-values, and for their use of competitive null hypotheses in lieu of self-contained null hypotheses, which have shown to be less powerful (due to their less restrictive nature) in comparison (Goeman & Bulhmann, 2007). 
 
 While various tools currently exist for metabolomics data analysis and pathway analysis (e.g., Metabolomics Workbench, PhenoMeNal and Metaboanalyst, Metscape, Mummichog, MetaMapp, and MetDisease), there are many shortcomings to these existing web tools. Some of these platforms employ popular machine learning models to analyze metabolomics data: unsupervised dimensionality reduction methods to view outliers or batch effects, and clustering methods to look for differences between cases and controls. Existing tools are not tailored for single patient analysis (i.e., N-of-1), such as in clinical testing metabolomics, and are more helpful for case-control cohort design data collection methods.
 
 # Enter, topological enrichment methods!
-Topological enrichment methods (good review papers found in Braun & Shah, 2005 and Ihnatova, Popovici & Budinska, 2018) have shown to be more sensitive than set-based enrichment analysis methods.
+Topological enrichment methods (good review papers found in Braun & Shah, 2014 and Ihnatova, Popovici & Budinska, 2018) have shown to be more sensitive than set-based enrichment analysis methods.
 
-![Existing Topological Enrichment Methods](papers/Ihnatova-Popovici-Budinska_2018.png){:height="50%" width="50%"}
+<img src=papers/Ihnatova-Popovici-Budinska_2018.png align="center">
 
 # Problem
 Modern day topological enrichment methods are all narrowly implemented for the analysis/interpretation of differentially expressed *gene sets*, and do not extend their functionality to the analysis and interpretation of perturbed metabolite sets.
@@ -32,10 +32,10 @@ We have examined several R package implementation of existing topological enrich
 
 
 Features:
-1. Datasets included from published papers including clinical subjects with metabolic diseases.
-2. Pathway visualization software and statistical interpretation metrics.
-3. New topology-based pathway enrichment analysis methods.
-4. Private data upload portal to use above tools on private datasets.
+1. Datasets included from published papers including clinical subjects with metabolic diseases (Miller, et al, 2015, Wangler, et al, 2017).
+2. Pathway visualization software, importing pathway knowledge curated by Metabolon's Metabolync Cytoscape plugin.
+3. New topology-based pathway enrichment analysis methods implemented for intepretation of clinical testing metabolomics data.
+4. TO COME:: Private data upload portal to use above tools on private datasets and pathway knowledgebases.
 
 ## Installation
 - Dependencies:
@@ -69,3 +69,12 @@ docker build .
 ```
 
 ## References
+- M.J. Miller, A.D. Kennedy, A.D. Eckhart, L.C. Burrage, J.E. Wulff, L.A. Miller, M.V. Milburn, J.A. Ryals,
+A.L. Beaudet, Q. Sun, V.R. Sutton & S.H. Elsea. Untargeted metabolomic analysis for the clinical screening of inborn errors of metabolism. J Inherit Metab Dis. 2015;38:1029-39.
+- M.F. Wangler, L. Hubert, T.R. Donti, M.J. Ventura, M.J. Miller, N. Braverman, K. Gawron, M. Bose,
+A.B. Moser, R.O. Jones, W.B. Rizzo, V.R. Sutton, Q. Sun, A.D. Kennedy & S.H. Elsea. A metabolomic map of Zellweger spectrum disorders reveals novel disease biomarkers. Genetics in Medicine, 2018, 00. 
+-MetaboLync Pathway Visualizations software, version 1.1.2, Copyright 2014 Metabolon, Inc., Research Triangle Park, NC, USA
+- L.C. Burrage, L. Ashmore, B.M. Stroup, Q. Sun, M.J. Miller, S.C.S Nagamani, W. Craigen, F. Scaglia, V.R. Sutton, B. Graham, A.D. Kennedy, A. Milosavljevic, B.H. Lee,  S.H. Elsea. 2019. Untargeted Metabolomic Profiling Reveals Multiple Pathway Perturbations and New Clinical Biomarkers in Urea Cycle Disorders. 2019, Genetics in Medicine. 
+- J.J. Goeman, P. Buhlmann. Analyzing gene expression data in terms of gene sets: methodological issues. Bioinformatics, 2007, 23(8):980-987.
+- I. Ihnatova, V. Popovici & E. Budinska. A critical comparison of topology-based pathway analysis methods. PLOS One, 2018, 13(1): e0191154.
+- R. Braun, S. Shah. Network Methods for Pathway Analysis of Genomic Data. arXiv, 2014, 1411.1993vl.

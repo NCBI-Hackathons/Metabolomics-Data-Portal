@@ -7,6 +7,7 @@ require(grid)
 require(MetabolomicsDataPortal)
 require(Hmisc)
 
+<<<<<<< HEAD
 
 tryCatch( 
   {
@@ -24,7 +25,7 @@ print(colnames(miller_data))
 print(dim(miller_data))
 miller_data = apply(miller_data, c(1,2), as.numeric)
 
-wangler_data = readRDS("data/Wangler2017_EDTA.rds")
+wangler_data = readRDS(file.path(pkgdir, "data/Wangler2017_EDTA.rds"))
 wangler_data = wangler_data[,-which(colnames(wangler_data) %in% c("Average", "Standard.dev"))]
 print(colnames(wangler_data))
 print(dim(wangler_data))
@@ -76,10 +77,10 @@ ui = dashboardPage(
                                    ),
                           fluidRow(box(title="Set-based Enrichment Analyses", status="info", solidHeader=TRUE, width=4, collapsible=TRUE#,
                                        #tableOutput("msea")
-                                      )# , 
-#                                    box(title="Topological-based Enrichment Analyses", status="info", solidHeader=TRUE, width=8, collapsible=TRUE#,
-#                                      dataTableOutput("cepa")
-#                                    )
+                                      ), 
+                                    box(title="Topological-based Enrichment Analyses", status="info", solidHeader=TRUE, width=8, collapsible=TRUE,
+                                     dataTableOutput("cepa")
+                                    )
                                   ),
                           fluidRow(box(title="Pathway Map", status="primary", solidHeader = TRUE,
                                        splitLayout(cellWidths=c("33%", "33%", "33%"),
@@ -129,6 +130,7 @@ server = function(input, output, session) {
         } else {
           .GlobalEnv$all_data = miller_data
         }
+        print(head(all_data))
         report = reactive(getPatientReport(input, all_data))
         output$patientReport = DT::renderDataTable({
           d = report()$patientReport
@@ -139,7 +141,13 @@ server = function(input, output, session) {
           content = function(file) { write.table(report()$patientReport, file, sep="\t", col.names = TRUE, row.names = FALSE) }
         )
         #output$msea = renderTable(getMSEA(input))
-#        output$cepa = renderTable(getcepa(input))
+        output$cepa = renderTable({
+            d = report()$patientReport
+            nms = d[,1]
+            vec = d[,2]
+            names(vec) = nms
+            shiny.get.cepa(z_vec=vec, pathway.name=input$pathwayMapId, pmap.path=file.path(pkgdir, "extdata"))
+          })
         #output$spia = renderTable(getSPIA(input))
         
         observeEvent(input$pathwayMapId, priority=0, {

@@ -4,11 +4,27 @@
 \alias{getPathwayIgraph}
 \title{getPathwayIgraph}
 \usage{
-getPathwayIgraph(input, Pathway.Name)
+getPathwayIgraph(input, Pathway.Name, pmap.path = "./extdata")
 }
 \arguments{
+\item{input}{- A list object of parameters (esp. from R shiny app). Required parameters are ptIDs, diagClass and pathwayMapId.}
+
 \item{Pathway.Name}{- The name of the pathway map for which you want the topological information.}
+}
+\value{
+template.ig - Igraph object of selected pathway map.
 }
 \description{
 getPathwayIgraph
+}
+\examples{
+ data(Miller2015_Heparin)
+# Input is supplied by R shiny app, but you can hard code parameters as a list object, too, to test functionality.
+input = list()
+input$ptIDs = colnames(Miller2015_Heparin)[4]
+input$diagClass = "paa"
+input$pathwayMapId = "All"
+ig = getPathwayIgraph(input, Miller2015_Heparin)
+# Returns a blank template for selected pathway.
+plot.igraph(ig, edge.arrow.size = 0.01)
 }

@@ -1,9 +1,9 @@
-Package: Metabolomics-Data-Portal
+Package: MetabolomicsDataPortal
 Title: Metabolomics Data Portal
 Version: 0.0.0.9000
 Authors@R: c(
 	person("Lillian", "Thistlethwaite", email = "lillian.thistlethwaite@bcm.edu", role = c("aut", "cre")),
-	person("Your", "Name", email="emailaddy@institution.edu", role=c("aut")),
+	person("Gautham", "Venugopalan", email="gautham@gryphonscientific.com", role=c("aut")),
 	person("Your", "Name", email="emailaddy@institution.edu", role=c("aut")),
 	person("Your", "Name", email="emailaddy@institution.edu", role=c("aut")),
 	person("Your", "Name", email="emailaddy@institution.edu", role=c("aut")),
@@ -11,6 +11,16 @@ Authors@R: c(
 )
 Description: R shiny application for the visualization and analysis of untargeted metabolomics datasets.
 Depends: R (>= 3.5.0)
+Imports:    
+  DT,
+  ggplot2,
+  grid,
+  Hmisc,
+  igraph,
+  shiny,
+  shinydashboard
+Suggests: 
+  dotenv
 License: MIT License
 Encoding: UTF-8
 LazyData: true
